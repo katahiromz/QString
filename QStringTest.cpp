@@ -1,141 +1,64 @@
 #include <windows.h>
-#include <stdio.h>
-#include <string>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
 #include <cstddef>
-
-HANDLE g_hHeap = GetProcessHeap();
-
-inline LPVOID Alloc(SIZE_T size)
-{
-    return HeapAlloc(g_hHeap, 0, size);
-}
-
-inline void Free(LPVOID ptr)
-{
-    HeapFree(g_hHeap, 0, ptr);
-}
-
-inline LPVOID ReAlloc(LPVOID ptr, SIZE_T size)
-{
-    if (!ptr)
-        return Alloc(size);
-
-    return HeapReAlloc(g_hHeap, 0, ptr, size);
-}
-
-#define XMALLOC Alloc
-#define XFREE Free
-#define XREALLOC ReAlloc
-
+#include <cassert>
+#include <cstring>
 #include "QString.h"
-
-#define PRINT(str) printf("Line %d: " #str ": '%s', %d\n", __LINE__, str.c_str(), (int)str.size());
-
-void TEST_QStringA(void)
-{
-    QStringA str1, str2;
-
-    PRINT(str1);
-    str1 += 'A';
-    PRINT(str1);
-    str1 += "BB";
-    PRINT(str1);
-    str1 += "CCC";
-    PRINT(str1);
-    str1 = "TEST";
-    PRINT(str1);
-    str1 = "ABC";
-    PRINT(str1);
-    str1 += "CDEF";
-    PRINT(str1);
-    str1.insert(0, "<<<");
-    PRINT(str1);
-    str1.insert(str1.size(), ">>>");
-    PRINT(str1);
-    str2 = std::move(str1);
-    PRINT(str2);
-    str2.erase(3, 7);
-    PRINT(str2);
-    str2.erase(3);
-    PRINT(str2);
-    str2.erase();
-    PRINT(str2);
-    str1 = "01234567";
-    PRINT(str1);
-    str1.replace(1, 3, "<><><>");
-    PRINT(str1);
-    str1.replace(1, 5, "##");
-    PRINT(str1);
-    str1.clear();
-    PRINT(str1);
-    str1 += "JJ";
-    PRINT(str1);
-    str1.resize(10, 'Z');
-    PRINT(str1);
-    str1.swap(str2);
-    PRINT(str1);
-    PRINT(str2);
-    size_t index = str2.find("Z");
-    printf("%d\n", (int)index);
-}
-
-void TEST_string(void)
-{
-    std::string str1, str2;
-
-    PRINT(str1);
-    str1 += 'A';
-    PRINT(str1);
-    str1 += "BB";
-    PRINT(str1);
-    str1 += "CCC";
-    PRINT(str1);
-    str1 = "TEST";
-    PRINT(str1);
-    str1 = "ABC";
-    PRINT(str1);
-    str1 += "CDEF";
-    PRINT(str1);
-    str1.insert(0, "<<<");
-    PRINT(str1);
-    str1.insert(str1.size(), ">>>");
-    PRINT(str1);
-    str2 = std::move(str1);
-    PRINT(str2);
-    str2.erase(3, 7);
-    PRINT(str2);
-    str2.erase(3);
-    PRINT(str2);
-    str2.erase();
-    PRINT(str2);
-    str1 = "01234567";
-    PRINT(str1);
-    str1.replace(1, 3, "<><><>");
-    PRINT(str1);
-    str1.replace(1, 5, "##");
-    PRINT(str1);
-    str1.clear();
-    PRINT(str1);
-    str1 += "JJ";
-    PRINT(str1);
-    str1.resize(10, 'Z');
-    PRINT(str1);
-    str1.swap(str2);
-    PRINT(str1);
-    PRINT(str2);
-    size_t index = str2.find("Z");
-    printf("%d\n", (int)index);
-}
 
 int main(void)
 {
-    DWORD dwTick0, dwTick1;
+    QStringA str1("Hello");
+    assert(str1.size() == 5);
+    assert(strcmp(str1.c_str(), "Hello") == 0);
 
-    puts("TEST_QStringA");
-    TEST_QStringA();
+    QStringA str2(str1);
+    assert(str1 == str2);
 
-    puts("TEST_string");
-    TEST_string();
+    str2.clear();
+    assert(str2.empty());
+
+    str2 = "World";
+    assert(str2.size() == 5);
+    assert(strcmp(str2.c_str(), "World") == 0);
+
+    str2 += '!';
+    assert(str2.size() == 6);
+    assert(strcmp(str2.c_str(), "World!") == 0);
+
+    str2.insert(5, " Hello");
+    assert(strcmp(str2.c_str(), "World Hello!") == 0);
+
+    str2.erase(5, 6);
+    assert(strcmp(str2.c_str(), "World!") == 0);
+
+    str2.replace(0, 5, "Goodbye");
+    assert(strcmp(str2.c_str(), "Goodbye!") == 0);
+
+    assert(str1.compare("Hello") == 0);
+    assert(str1.compare("World") < 0);
+    assert(str1.compare("Apple") > 0);
+
+    assert(str1.icompare("hello") == 0);
+    assert(str1.icompare("WORLD") < 0);
+    assert(str1.icompare("apple") > 0);
+
+    assert(str1.find('e') == 1);
+    assert(str1.find("lo") == 3);
+    assert(str1.rfind('l') == 3);
+    assert(str1.rfind("el") == 1);
+    assert(str1.ifind('E') == 1);
+    assert(str1.ifind("LO") == 3);
+
+    QStringA sub = str1.substr(1, 3);
+    assert(strcmp(sub.c_str(), "ell") == 0);
+
+    QStringA fmt;
+    fmt.format("%s, %d", "Number", 42);
+    assert(strcmp(fmt.c_str(), "Number, 42") == 0);
+
+    std::cout << "All tests passed!" << std::endl;
 
     return 0;
 }

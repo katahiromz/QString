@@ -249,6 +249,14 @@ public:
         _copy(pszText, cchText);
     }
 
+    QStringT(const self_type& str) noexcept
+        : m_pszText(m_szText)
+        , m_nLength(0)
+        , m_nCapacity(SSO_MAX_SIZE)
+    {
+        _copy(str.m_pszText, str.m_nLength);
+    }
+
     QStringT(self_type&& str) noexcept
     {
         bool alloc = str.is_alloc();
@@ -616,8 +624,10 @@ public:
     }
     inline size_type find(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
     {
-        for (; index + cchText < m_nLength; ++index)
+        for (; index < m_nLength; ++index)
         {
+            if (index + cchText > m_nLength)
+                break;
             if (_compare(&m_pszText[index], pszText, cchText) == 0)
                 return index;
         }
@@ -662,8 +672,10 @@ public:
     }
     inline size_type ifind(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
     {
-        for (; index + cchText < m_nLength; ++index)
+        for (; index < m_nLength; ++index)
         {
+            if (index + cchText > m_nLength)
+                break;
             if (_icompare(&m_pszText[index], pszText, cchText) == 0)
                 return index;
         }
