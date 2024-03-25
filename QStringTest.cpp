@@ -5,7 +5,51 @@
 #include <cstddef>
 #include <cassert>
 #include <cstring>
+#include <chrono>
 #include "QString.h"
+
+const int ITERATIONS = 100000000;
+const char* pattern = "test";
+
+void speed_test_CStringA(void)
+{
+    QStringA qstr;
+    auto start = std::chrono::steady_clock::now();
+    for (int i = 0; i < ITERATIONS; ++i) {
+        qstr += pattern;
+    }
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "QStringA concatenation time: " << duration << " ms" << std::endl;
+
+    start = std::chrono::steady_clock::now();
+    for (int i = 0; i < ITERATIONS; ++i) {
+        size_t index = qstr.find('t');
+    }
+    end = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "QStringA find time: " << duration << " ms" << std::endl;
+}
+
+void speed_test_string(void)
+{
+    std::string stdstr;
+    auto start = std::chrono::steady_clock::now();
+    for (int i = 0; i < ITERATIONS; ++i) {
+        stdstr += pattern;
+    }
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "std::string concatenation time: " << duration << " ms" << std::endl;
+
+    start = std::chrono::steady_clock::now();
+    for (int i = 0; i < ITERATIONS; ++i) {
+        size_t index = stdstr.find('t');
+    }
+    end = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "std::string find time: " << duration << " ms" << std::endl;
+}
 
 int main(void)
 {
@@ -57,6 +101,9 @@ int main(void)
     QStringA fmt;
     fmt.format("%s, %d", "Number", 42);
     assert(strcmp(fmt.c_str(), "Number, 42") == 0);
+
+    speed_test_CStringA();
+    speed_test_string();
 
     std::cout << "All tests passed!" << std::endl;
 
