@@ -16,7 +16,8 @@
     #define XNOEXCEPT noexcept
 #endif
 
-#include <emmintrin.h> // SSE2
+#include <emmintrin.h>
+#include <immintrin.h>
 #include <cstdint>
 #include <cassert>
 #include <strsafe.h>
@@ -799,6 +800,7 @@ public:
         size_t cb = m_nLength * sizeof(T_CHAR);
         size_t result = 0xDEADFACE + cb;
 
+#if 0
         for (size_t cdw = cb / sizeof(uint32_t); cdw > 0; cdw--)
         {
             result ^= *(const uint32_t *)pb;
@@ -813,6 +815,43 @@ public:
 
         if (cb & 1)
             result ^= *pb;
+#else
+        size_t cqw = cb / 16; // 16 bytes (128 bits) at a time
+
+        // Process 16-byte blocks using SSE2 intrinsics
+        for (size_t i = 0; i < cqw; ++i)
+        {
+            __m128i data = _mm_loadu_si128((__m128i*)pb);
+            __m128i hash = _mm_set1_epi32(result);
+            hash = _mm_xor_si128(hash, data);
+            result = _mm_cvtsi128_si32(hash);
+            pb += 16;
+        }
+
+        // Process remaining bytes
+        cb %= 16;
+        if (cb >= 8)
+        {
+            result ^= *(const uint32_t *)pb;
+            result ^= *(const uint32_t *)(pb + 4);
+            pb += 8;
+            cb -= 8;
+        }
+        if (cb >= 4)
+        {
+            result ^= *(const uint32_t *)pb;
+            pb += 4;
+            cb -= 4;
+        }
+        if (cb >= 2)
+        {
+            result ^= *(const uint16_t *)pb;
+            pb += 2;
+            cb -= 2;
+        }
+        if (cb)
+            result ^= *pb;
+#endif
 
         return result;
     }

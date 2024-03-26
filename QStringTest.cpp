@@ -163,6 +163,8 @@ void test_QStringA(void)
     QStringA fmt;
     fmt.format("%s, %d", "Number", 42);
     assert(strcmp(fmt.c_str(), "Number, 42") == 0);
+
+    std::cout << "hash: " << std::hash<QStringA>{}(sub) << std::endl;
 }
 
 void test_string(void)
@@ -221,6 +223,8 @@ void test_string(void)
     //std::string fmt;
     //fmt.format("%s, %d", "Number", 42);
     //assert(strcmp(fmt.c_str(), "Number, 42") == 0);
+
+    std::cout << "hash: " << std::hash<std::string>{}(sub) << std::endl;
 }
 
 int main(void)
