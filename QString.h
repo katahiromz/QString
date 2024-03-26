@@ -476,6 +476,10 @@ public:
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
     }
+    inline void append(const T_CHAR *it0, const T_CHAR *it1) XNOEXCEPT
+    {
+        append(it0, it1 - it0);
+    }
     inline void append(const self_type& str) XNOEXCEPT
     {
         size_type newLength = m_nLength + str.m_nLength;
