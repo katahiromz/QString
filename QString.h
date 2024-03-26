@@ -423,7 +423,13 @@ public:
     }
     inline void operator+=(const self_type& str) XNOEXCEPT
     {
-        append(str);
+        size_type newLength = m_nLength + str.m_nLength;
+        if (!_resize_1(newLength + 1))
+            return;
+
+        memcpy(&m_pszText[m_nLength], str.m_pszText, str.m_nLength * sizeof(T_CHAR));
+        m_nLength = newLength;
+        m_pszText[m_nLength] = 0;
     }
     template <size_type t_size>
     inline void operator+=(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
@@ -434,7 +440,7 @@ public:
     inline void append(size_type count, T_CHAR ch) XNOEXCEPT
     {
         self_type str(count, ch);
-        *this += str;
+        append(str.m_pszText, count);
     }
     inline void append(const T_CHAR *pszText) XNOEXCEPT
     {
@@ -460,7 +466,13 @@ public:
     }
     inline void append(const self_type& str) XNOEXCEPT
     {
-        append(str.m_pszText, str.m_nLength);
+        size_type newLength = m_nLength + str.m_nLength;
+        if (!_resize_1(newLength + 1))
+            return;
+
+        memcpy(&m_pszText[m_nLength], str.m_pszText, str.m_nLength * sizeof(T_CHAR));
+        m_nLength = newLength;
+        m_pszText[m_nLength] = 0;
     }
 
     inline void insert(size_type index, size_type count, T_CHAR ch) XNOEXCEPT
