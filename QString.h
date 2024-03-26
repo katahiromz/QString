@@ -12,6 +12,10 @@
     #define XTHROW(x) /**/
 #endif
 
+#ifndef XNOEXCEPT
+    #define XNOEXCEPT noexcept
+#endif
+
 #include <emmintrin.h> // SSE2
 #include <cassert>
 #include <strsafe.h>
@@ -23,11 +27,13 @@ typedef size_t SIZE_T;
 template <typename T_CHAR, SIZE_T t_size>
 struct QStringLiteral
 {
-    enum : SIZE_T { m_size = t_size };
     const T_CHAR *m_pszText;
-    QStringLiteral(const T_CHAR (&szText)[t_size]) noexcept : m_pszText(szText) { }
-    operator const T_CHAR *() const noexcept { return m_pszText; }
-    const T_CHAR& operator[](size_t index) const noexcept { return m_pszText[index]; }
+    QStringLiteral(const T_CHAR (&szText)[t_size]) XNOEXCEPT : m_pszText(szText)
+    {
+        assert(szText[t_size - 1] == 0);
+    }
+    operator const T_CHAR *() const XNOEXCEPT { return m_pszText; }
+    const T_CHAR& operator[](size_t index) const XNOEXCEPT { return m_pszText[index]; }
 };
 
 template <typename T_CHAR>
@@ -46,21 +52,21 @@ public:
     static const size_type npos = -1;
 
 protected:
-    inline size_type _length(const  char   *psz) const noexcept { return strlen(psz); }
-    inline size_type _length(const wchar_t *psz) const noexcept { return wcslen(psz); }
+    inline size_type _length(const  char   *psz) const XNOEXCEPT { return strlen(psz); }
+    inline size_type _length(const wchar_t *psz) const XNOEXCEPT { return wcslen(psz); }
 
-    inline bool is_alloc() const noexcept
+    inline bool is_alloc() const XNOEXCEPT
     {
         return m_szText != m_pszText;
     }
 
-    inline void _free() noexcept
+    inline void _free() XNOEXCEPT
     {
         if (is_alloc())
             XFREE(m_pszText);
     }
 
-    inline void _reset() noexcept
+    inline void _reset() XNOEXCEPT
     {
         m_pszText = m_szText;
         m_pszText[0] = 0;
@@ -68,12 +74,12 @@ protected:
         m_nCapacity = SSO_MAX_SIZE;
     }
 
-    inline bool _resize_0(size_type newCapacity, bool alloc) noexcept
+    inline bool _resize_0(size_type newCapacity, bool alloc) XNOEXCEPT
     {
         size_type newSize = newCapacity * sizeof(T_CHAR);
         return _resize_0(newCapacity, alloc, newSize);
     }
-    bool _resize_0(size_type newCapacity, bool alloc, size_type newSize) noexcept
+    bool _resize_0(size_type newCapacity, bool alloc, size_type newSize) XNOEXCEPT
     {
         T_CHAR *pszNew;
         if (alloc)
@@ -100,11 +106,11 @@ protected:
         m_nCapacity = newCapacity;
         return true;
     }
-    inline bool _resize_1(size_type newCapacity) noexcept
+    inline bool _resize_1(size_type newCapacity) XNOEXCEPT
     {
         return _resize_1(newCapacity, is_alloc());
     }
-    inline bool _resize_1(size_type newCapacity, bool alloc) noexcept
+    inline bool _resize_1(size_type newCapacity, bool alloc) XNOEXCEPT
     {
         if (newCapacity <= m_nCapacity)
             return true;
@@ -112,7 +118,7 @@ protected:
         return _resize_0(newCapacity * 2, alloc);
     }
 
-    void _copy(const T_CHAR *pszText, size_type cchText) noexcept
+    void _copy(const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         if (!_resize_1(cchText + 1))
             return;
@@ -122,7 +128,7 @@ protected:
         m_pszText[m_nLength] = 0;
     }
 
-    void _insert_0(size_t index, const T_CHAR *pszText, size_type cchText) noexcept
+    void _insert_0(size_t index, const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         if (!_resize_1(m_nLength + cchText + 1))
             return;
@@ -132,7 +138,7 @@ protected:
         m_nLength += cchText;
         m_pszText[m_nLength] = 0;
     }
-    inline void _insert(size_t index, const T_CHAR *pszText, size_type cchText) noexcept
+    inline void _insert(size_t index, const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         assert(index <= m_nLength);
 
@@ -142,20 +148,20 @@ protected:
         _insert_0(index, pszText, cchText);
     }
 
-    inline void _fill(size_type count, char ch) noexcept
+    inline void _fill(size_type count, char ch) XNOEXCEPT
     {
         memset(m_pszText, ch, count);
     }
-    inline void _fill(size_type index, size_type count, char ch) noexcept
+    inline void _fill(size_type index, size_type count, char ch) XNOEXCEPT
     {
         memset(&m_pszText[index], ch, count);
     }
 
-    inline void _fill(size_type count, wchar_t ch) noexcept
+    inline void _fill(size_type count, wchar_t ch) XNOEXCEPT
     {
         _fill(0, count, ch);
     }
-    void _fill(size_type index, size_type count, wchar_t ch) noexcept
+    void _fill(size_type index, size_type count, wchar_t ch) XNOEXCEPT
     {
         count += index;
 #ifdef NDEBUG
@@ -176,40 +182,40 @@ protected:
         }
     }
 
-    inline int _compare(const T_CHAR *psz, const T_CHAR *pszText, size_type cchText) const noexcept
+    inline int _compare(const T_CHAR *psz, const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
     {
         return strncmp(psz, pszText, cchText);
     }
-    inline int _compare(const T_CHAR *pszText, size_type cchText) const noexcept
+    inline int _compare(const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
     {
         return _compare(m_pszText, pszText, cchText);
     }
 
-    inline int _icompare(const char *psz, const char *pszText, size_type cchText) const noexcept
+    inline int _icompare(const char *psz, const char *pszText, size_type cchText) const XNOEXCEPT
     {
         return _strnicmp(psz, pszText, cchText);
     }
-    inline int _icompare(const wchar_t *psz, const wchar_t *pszText, size_type cchText) const noexcept
+    inline int _icompare(const wchar_t *psz, const wchar_t *pszText, size_type cchText) const XNOEXCEPT
     {
         return _wcsnicmp(psz, pszText, cchText);
     }
-    inline int _icompare(const char *pszText, size_type cchText) const noexcept
+    inline int _icompare(const char *pszText, size_type cchText) const XNOEXCEPT
     {
         return _icompare(m_pszText, pszText, cchText);
     }
-    inline int _icompare(const wchar_t *pszText, size_type cchText) const noexcept
+    inline int _icompare(const wchar_t *pszText, size_type cchText) const XNOEXCEPT
     {
         return _icompare(m_pszText, pszText, cchText);
     }
 
-    inline size_type _format_v(const char *fmt, va_list va) noexcept
+    inline size_type _format_v(const char *fmt, va_list va) XNOEXCEPT
     {
         char szBuf[1024];
         StringCchVPrintfA(szBuf, _countof(szBuf), fmt, va);
         *this = szBuf;
         return strlen(szBuf);
     }
-    inline size_type _format_v(const wchar_t *fmt, va_list va) noexcept
+    inline size_type _format_v(const wchar_t *fmt, va_list va) XNOEXCEPT
     {
         wchar_t szBuf[1024];
         StringCchVPrintfW(szBuf, _countof(szBuf), fmt, va);
@@ -217,14 +223,14 @@ protected:
         return wcslen(szBuf);
     }
 
-    void _replace_0(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) noexcept
+    void _replace_0(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         memmove(&m_pszText[index + cchText], &m_pszText[index + count], (m_nLength - count) * sizeof(T_CHAR));
         memcpy(&m_pszText[index], pszText, cchText * sizeof(T_CHAR));
         m_nLength += cchText - count;
         m_pszText[m_nLength] = 0;
     }
-    inline void _replace_1(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) noexcept
+    inline void _replace_1(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         assert(index <= m_nLength);
         assert(index + count <= m_nLength);
@@ -245,7 +251,7 @@ protected:
     }
 
 public:
-    inline QStringT() noexcept
+    inline QStringT() XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -253,7 +259,7 @@ public:
         m_szText[0] = 0;
     }
 
-    inline QStringT(const T_CHAR *pszText) noexcept
+    inline QStringT(const T_CHAR *pszText) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -261,7 +267,7 @@ public:
         _copy(pszText, _length(pszText));
     }
 
-    inline QStringT(const T_CHAR *pch0, const T_CHAR *pch1) noexcept
+    inline QStringT(const T_CHAR *pch0, const T_CHAR *pch1) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -270,16 +276,15 @@ public:
     }
 
     template <size_type t_size>
-    inline QStringT(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    inline QStringT(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
     {
-        assert(literal[t_size - 1] == 0);
         _copy(literal, t_size - 1);
     }
 
-    inline QStringT(const T_CHAR *pszText, size_type cchText) noexcept
+    inline QStringT(const T_CHAR *pszText, size_type cchText) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -287,7 +292,7 @@ public:
         _copy(pszText, cchText);
     }
 
-    inline QStringT(const self_type& str) noexcept
+    inline QStringT(const self_type& str) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -295,7 +300,7 @@ public:
         _copy(str.m_pszText, str.m_nLength);
     }
 
-    inline QStringT(self_type&& str) noexcept
+    inline QStringT(self_type&& str) XNOEXCEPT
     {
         bool alloc = str.is_alloc();
         memcpy(this, &str, sizeof(*this));
@@ -304,7 +309,7 @@ public:
         str._reset();
     }
 
-    inline QStringT(size_type count, T_CHAR ch) noexcept
+    inline QStringT(size_type count, T_CHAR ch) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -319,38 +324,38 @@ public:
         m_pszText[count] = 0;
     }
 
-    inline ~QStringT() noexcept
+    inline ~QStringT() XNOEXCEPT
     {
         _free();
     }
 
-    inline       T_CHAR& operator[](size_type index)       noexcept { return m_pszText[index]; }
-    inline const T_CHAR& operator[](size_type index) const noexcept { return m_pszText[index]; }
+    inline       T_CHAR& operator[](size_type index)       XNOEXCEPT { return m_pszText[index]; }
+    inline const T_CHAR& operator[](size_type index) const XNOEXCEPT { return m_pszText[index]; }
 
-    inline T_CHAR *data()                  noexcept { return m_pszText; }
-    inline const T_CHAR *c_str() const     noexcept { return m_pszText; }
-    inline operator const T_CHAR *() const noexcept { return m_pszText; }
-    inline size_type size() const          noexcept { return m_nLength; }
-    inline bool empty() const              noexcept { return !size();   }
+    inline T_CHAR *data()                  XNOEXCEPT { return m_pszText; }
+    inline const T_CHAR *c_str() const     XNOEXCEPT { return m_pszText; }
+    inline operator const T_CHAR *() const XNOEXCEPT { return m_pszText; }
+    inline size_type size() const          XNOEXCEPT { return m_nLength; }
+    inline bool empty() const              XNOEXCEPT { return !size();   }
 
-    inline void clear() noexcept
+    inline void clear() XNOEXCEPT
     {
         _free();
         _reset();
     }
 
-    inline QStringT& operator=(const T_CHAR *pszText) noexcept
+    inline QStringT& operator=(const T_CHAR *pszText) XNOEXCEPT
     {
         assign(pszText);
         return *this;
     }
-    inline QStringT& operator=(const self_type& str) noexcept
+    inline QStringT& operator=(const self_type& str) XNOEXCEPT
     {
         if (this != &str)
             assign(str);
         return *this;
     }
-    inline QStringT& operator=(self_type&& str) noexcept
+    inline QStringT& operator=(self_type&& str) XNOEXCEPT
     {
         if (this == &str)
             return *this;
@@ -359,27 +364,26 @@ public:
         return *this;
     }
     template <size_type t_size>
-    inline QStringT& operator=(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    inline QStringT& operator=(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
     {
-        assert(literal[t_size - 1] == 0);
         assign(literal);
         return *this;
     }
 
-    inline void assign(const T_CHAR *pszText) noexcept
+    inline void assign(const T_CHAR *pszText) XNOEXCEPT
     {
         _copy(pszText, _length(pszText));
     }
-    inline void assign(const T_CHAR *pch0, const T_CHAR *pch1) noexcept
+    inline void assign(const T_CHAR *pch0, const T_CHAR *pch1) XNOEXCEPT
     {
         _copy(pch0, pch1 - pch0);
     }
-    inline void assign(const self_type& str) noexcept
+    inline void assign(const self_type& str) XNOEXCEPT
     {
         assert(this != &str);
         _copy(str.m_pszText, str.m_nLength);
     }
-    inline void assign(self_type&& str) noexcept
+    inline void assign(self_type&& str) XNOEXCEPT
     {
         assert(this != &str);
         _free();
@@ -389,7 +393,7 @@ public:
             m_pszText = m_szText;
         str._reset();
     }
-    inline void assign(size_type count, T_CHAR ch) noexcept
+    inline void assign(size_type count, T_CHAR ch) XNOEXCEPT
     {
         if (!_resize_1(count + 1))
             return;
@@ -398,13 +402,12 @@ public:
         m_pszText[count] = 0;
     }
     template <size_type t_size>
-    inline void assign(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    inline void assign(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
     {
-        assert(literal[t_size - 1] == 0);
         _copy(literal, t_size - 1);
     }
 
-    inline void operator+=(T_CHAR ch) noexcept
+    inline void operator+=(T_CHAR ch) XNOEXCEPT
     {
         size_type newLength = m_nLength + 1;
         if (!_resize_1(newLength + 1))
@@ -414,27 +417,26 @@ public:
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
     }
-    inline void operator+=(const T_CHAR *pszText) noexcept
+    inline void operator+=(const T_CHAR *pszText) XNOEXCEPT
     {
         append(pszText);
     }
-    inline void operator+=(const self_type& str) noexcept
+    inline void operator+=(const self_type& str) XNOEXCEPT
     {
         append(str.m_pszText, str.m_nLength);
     }
     template <size_type t_size>
-    inline void operator+=(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    inline void operator+=(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
     {
-        assert(literal[t_size - 1] == 0);
         append(literal, t_size - 1);
     }
 
-    inline void append(size_type count, T_CHAR ch) noexcept
+    inline void append(size_type count, T_CHAR ch) XNOEXCEPT
     {
         self_type str(count, ch);
         *this += str;
     }
-    inline void append(const T_CHAR *pszText) noexcept
+    inline void append(const T_CHAR *pszText) XNOEXCEPT
     {
         size_type cchText = _length(pszText);
         size_type newLength = m_nLength + cchText;
@@ -446,7 +448,7 @@ public:
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
     }
-    inline void append(const T_CHAR *pszText, size_type cchText) noexcept
+    inline void append(const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         size_type newLength = m_nLength + cchText;
         if (!_resize_1(newLength + 1))
@@ -456,40 +458,40 @@ public:
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
     }
-    inline void append(const self_type& str) noexcept
+    inline void append(const self_type& str) XNOEXCEPT
     {
         append(str.m_pszText, str.m_nLength);
     }
 
-    inline void insert(size_type index, size_type count, T_CHAR ch) noexcept
+    inline void insert(size_type index, size_type count, T_CHAR ch) XNOEXCEPT
     {
         self_type str(count, ch);
         insert(index, str);
     }
-    inline void insert(size_type index, const T_CHAR *psz) noexcept
+    inline void insert(size_type index, const T_CHAR *psz) XNOEXCEPT
     {
         insert(index, psz, _length(psz));
     }
-    inline void insert(size_type index, const T_CHAR *pszText, size_type cchText) noexcept
+    inline void insert(size_type index, const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         _insert(index, pszText, cchText);
     }
-    inline void insert(size_type index, const self_type& str) noexcept
+    inline void insert(size_type index, const self_type& str) XNOEXCEPT
     {
         _insert(index, str.m_pszText, str.m_nLength);
     }
 
-    inline void erase() noexcept
+    inline void erase() XNOEXCEPT
     {
         clear();
     }
-    inline void erase(size_type index) noexcept
+    inline void erase(size_type index) XNOEXCEPT
     {
         if (index < m_nLength)
             m_nLength = index;
         m_pszText[m_nLength] = 0;
     }
-    inline void erase(size_type index, size_type count) noexcept
+    inline void erase(size_type index, size_type count) XNOEXCEPT
     {
         if (!count)
             return;
@@ -504,27 +506,27 @@ public:
         m_pszText[m_nLength] = 0;
     }
 
-    inline void replace(size_type index, size_type count, const T_CHAR *pszText) noexcept
+    inline void replace(size_type index, size_type count, const T_CHAR *pszText) XNOEXCEPT
     {
         replace(index, count, pszText, _length(pszText));
     }
-    inline void replace(size_type index, size_type count, const self_type& str) noexcept
+    inline void replace(size_type index, size_type count, const self_type& str) XNOEXCEPT
     {
         replace(index, count, str.m_pszText, str.m_nLength);
     }
-    inline void replace(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) noexcept
+    inline void replace(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         _replace_1(index, count, pszText, cchText);
     }
 
-    inline void resize(size_type length) noexcept
+    inline void resize(size_type length) XNOEXCEPT
     {
         if (!_resize_1(length + 1))
             return;
         m_nLength = length;
         m_pszText[m_nLength] = 0;
     }
-    void resize(size_type length, T_CHAR ch) noexcept
+    void resize(size_type length, T_CHAR ch) XNOEXCEPT
     {
         size_type len = m_nLength;
         if (!_resize_1(length + 1))
@@ -540,98 +542,98 @@ public:
         _resize_0(length + 1, is_alloc());
     }
 
-    inline int compare(const T_CHAR *psz) const noexcept
+    inline int compare(const T_CHAR *psz) const XNOEXCEPT
     {
         return _compare(psz, _length(psz));
     }
-    inline int compare(const self_type& str) const noexcept
+    inline int compare(const self_type& str) const XNOEXCEPT
     {
         return _compare(str.m_pszText, str.m_nLength);
     }
 
-    inline int icompare(const T_CHAR *psz) const noexcept
+    inline int icompare(const T_CHAR *psz) const XNOEXCEPT
     {
         return _icompare(psz, _length(psz));
     }
-    inline int icompare(const self_type& str) const noexcept
+    inline int icompare(const self_type& str) const XNOEXCEPT
     {
         return _icompare(str.m_pszText, str.m_nLength);
     }
 
-    inline bool operator==(const T_CHAR *psz) const noexcept
+    inline bool operator==(const T_CHAR *psz) const XNOEXCEPT
     {
         return compare(psz) == 0;
     }
-    inline bool operator!=(const T_CHAR *psz) const noexcept
+    inline bool operator!=(const T_CHAR *psz) const XNOEXCEPT
     {
         return compare(psz) != 0;
     }
-    inline bool operator<(const T_CHAR *psz) const noexcept
+    inline bool operator<(const T_CHAR *psz) const XNOEXCEPT
     {
         return compare(psz) < 0;
     }
-    inline bool operator>(const T_CHAR *psz) const noexcept
+    inline bool operator>(const T_CHAR *psz) const XNOEXCEPT
     {
         return compare(psz) > 0;
     }
-    inline bool operator<=(const T_CHAR *psz) const noexcept
+    inline bool operator<=(const T_CHAR *psz) const XNOEXCEPT
     {
         return compare(psz) <= 0;
     }
-    inline bool operator>=(const T_CHAR *psz) const noexcept
+    inline bool operator>=(const T_CHAR *psz) const XNOEXCEPT
     {
         return compare(psz) >= 0;
     }
 
-    inline bool operator==(const self_type& str) const noexcept
+    inline bool operator==(const self_type& str) const XNOEXCEPT
     {
         return compare(str) == 0;
     }
-    inline bool operator!=(const self_type& str) const noexcept
+    inline bool operator!=(const self_type& str) const XNOEXCEPT
     {
         return compare(str) != 0;
     }
-    inline bool operator<(const self_type& str) const noexcept
+    inline bool operator<(const self_type& str) const XNOEXCEPT
     {
         return compare(str) < 0;
     }
-    inline bool operator>(const self_type& str) const noexcept
+    inline bool operator>(const self_type& str) const XNOEXCEPT
     {
         return compare(str) > 0;
     }
-    inline bool operator<=(const self_type& str) const noexcept
+    inline bool operator<=(const self_type& str) const XNOEXCEPT
     {
         return compare(str) <= 0;
     }
-    inline bool operator>=(const self_type& str) const noexcept
+    inline bool operator>=(const self_type& str) const XNOEXCEPT
     {
         return compare(str) >= 0;
     }
 
-    void swap(self_type& str) noexcept
+    void swap(self_type& str) XNOEXCEPT
     {
         self_type tmp = std::move(*this);
         *this = std::move(str);
         str = std::move(tmp);
     }
 
-    inline self_type substr() const noexcept
+    inline self_type substr() const XNOEXCEPT
     {
         return *this;
     }
-    inline self_type substr(size_type index) const noexcept
+    inline self_type substr(size_type index) const XNOEXCEPT
     {
         assert(index <= m_nLength);
         return self_type(&m_pszText[index], m_nLength - index);
     }
-    inline self_type substr(size_type index, size_type count) const noexcept
+    inline self_type substr(size_type index, size_type count) const XNOEXCEPT
     {
         assert(index <= m_nLength);
         assert(index + count <= m_nLength);
         return self_type(&m_pszText[index], count);
     }
 
-    inline size_type format(const T_CHAR *fmt, ...) noexcept
+    inline size_type format(const T_CHAR *fmt, ...) XNOEXCEPT
     {
         va_list va;
         va_start(va, fmt);
@@ -640,7 +642,7 @@ public:
         return ret;
     }
 
-    inline size_type find(T_CHAR ch, size_type index = 0) const noexcept
+    inline size_type find(T_CHAR ch, size_type index = 0) const XNOEXCEPT
     {
         if (index >= m_nLength)
             return npos;
@@ -651,11 +653,11 @@ public:
         }
         return npos;
     }
-    inline size_type find(const T_CHAR *psz, size_type index = 0) const noexcept
+    inline size_type find(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
     {
         return find(psz, index, _length(psz));
     }
-    size_type find(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
+    size_type find(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
         if (index >= m_nLength || cchText == 0 || cchText > m_nLength - index)
             return npos;
@@ -688,12 +690,12 @@ public:
 
         return npos;
     }
-    inline size_type find(const self_type& str, size_type index = 0) const noexcept
+    inline size_type find(const self_type& str, size_type index = 0) const XNOEXCEPT
     {
         return find(str.m_pszText, index, str.m_nLength);
     }
 
-    inline size_type rfind(T_CHAR ch, size_type index = 0) const noexcept
+    inline size_type rfind(T_CHAR ch, size_type index = 0) const XNOEXCEPT
     {
         if (index >= m_nLength)
             return npos;
@@ -706,11 +708,11 @@ public:
         }
         return npos;
     }
-    inline size_type rfind(const T_CHAR *psz, size_type index = 0) const noexcept
+    inline size_type rfind(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
     {
         return rfind(psz, index, _length(psz));
     }
-    size_type rfind(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
+    size_type rfind(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
         if (index >= m_nLength || cchText == 0 || cchText > m_nLength - index)
             return npos;
@@ -742,12 +744,12 @@ public:
 
         return npos;
     }
-    inline size_type rfind(const self_type& str, size_type index = 0) const noexcept
+    inline size_type rfind(const self_type& str, size_type index = 0) const XNOEXCEPT
     {
         return rfind(str.m_pszText, index, str.m_nLength);
     }
 
-    size_type ifind(T_CHAR ch, size_type index = 0) const noexcept
+    size_type ifind(T_CHAR ch, size_type index = 0) const XNOEXCEPT
     {
         if (index >= m_nLength)
             return npos;
@@ -758,11 +760,11 @@ public:
         }
         return npos;
     }
-    inline size_type ifind(const T_CHAR *psz, size_type index = 0) const noexcept
+    inline size_type ifind(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
     {
         return ifind(psz, index, _length(psz));
     }
-    size_type ifind(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
+    size_type ifind(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
         for (; index < m_nLength; ++index)
         {
@@ -773,7 +775,7 @@ public:
         }
         return npos;
     }
-    inline size_type ifind(const self_type& str, size_type index = 0) const noexcept
+    inline size_type ifind(const self_type& str, size_type index = 0) const XNOEXCEPT
     {
         return ifind(str.m_pszText, index, str.m_nLength);
     }
