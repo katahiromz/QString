@@ -1035,12 +1035,6 @@ public:
 typedef QStringT<char>    QStringA;
 typedef QStringT<wchar_t> QStringW;
 
-#ifdef UNICODE
-    typedef QStringW QString;
-#else
-    typedef QStringA QString;
-#endif
-
 template <typename T_NUMBER>
 QStringA to_QStringA(const T_NUMBER& number)
 {
@@ -1102,6 +1096,18 @@ QStringW to_QStringW(const T_NUMBER& number)
     std::reverse(ret.begin(), ret.end());
     return ret;
 }
+
+#ifdef UNICODE
+    using QString = QStringW;
+
+    template <typename T_NUMBER>
+    using to_QString = decltype(to_QStringW<T_NUMBER>);
+#else
+    using QString = QStringA;
+
+    template <typename T_NUMBER>
+    using to_QString = decltype(to_QStringA<T_NUMBER>);
+#endif
 
 namespace std
 {
