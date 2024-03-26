@@ -184,9 +184,13 @@ protected:
         }
     }
 
-    inline int _compare(const T_CHAR *psz, const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
+    inline int _compare(const char *psz, const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
     {
         return strncmp(psz, pszText, cchText);
+    }
+    inline int _compare(const wchar_t *psz, const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
+    {
+        return wcsncmp(psz, pszText, cchText);
     }
     inline int _compare(const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
     {
@@ -336,7 +340,7 @@ public:
 
     inline T_CHAR *data()                  XNOEXCEPT { return m_pszText; }
     inline const T_CHAR *c_str() const     XNOEXCEPT { return m_pszText; }
-    inline operator const T_CHAR *() const XNOEXCEPT { return m_pszText; }
+    //inline operator const T_CHAR *() const XNOEXCEPT { return m_pszText; }
     inline size_type size() const          XNOEXCEPT { return m_nLength; }
     inline bool empty() const              XNOEXCEPT { return !size();   }
 
