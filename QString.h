@@ -20,13 +20,10 @@
 #include <immintrin.h>
 #include <cstdint>
 #include <cassert>
+#include <algorithm>
 #include <strsafe.h>
 
-#ifndef _INC_WINDOWS
-typedef size_t SIZE_T;
-#endif
-
-template <typename T_CHAR, SIZE_T t_size>
+template <typename T_CHAR, size_t t_size>
 struct QStringLiteral
 {
     const T_CHAR *m_pszText;
@@ -43,7 +40,7 @@ class QStringT
 {
 public:
     typedef T_CHAR value_type;
-    typedef SIZE_T size_type;
+    typedef size_t size_type;
     typedef QStringT<T_CHAR> self_type;
     enum { SSO_MAX_SIZE = 60 }; // Short String Optimization
 
@@ -1037,11 +1034,74 @@ public:
 
 typedef QStringT<char>    QStringA;
 typedef QStringT<wchar_t> QStringW;
-#ifdef _INC_WINDOWS
-    typedef QStringT<TCHAR> QString;
+
+#ifdef UNICODE
+    typedef QStringW QString;
 #else
     typedef QStringA QString;
 #endif
+
+template <typename T_NUMBER>
+QStringA to_QStringA(const T_NUMBER& number)
+{
+    if (number == 0)
+        return "0";
+
+    bool minus = (number < 0);
+    if (minus)
+        number = -number;
+
+    QStringA ret;
+    auto psz = ret.data();
+    auto pch = psz;
+
+    do
+    {
+        *pch++ = (char)('0' + (number % 10));
+        number /= 10;
+    } while (number > 0);
+    *pch = 0;
+
+    ret.m_nLength = pch - psz;
+    assert(ret.m_nLength < QStringA::SSO_MAX_SIZE);
+
+    if (minus)
+        ret += '-';
+
+    std::reverse(ret.begin(), ret.end());
+    return ret;
+}
+
+template <typename T_NUMBER>
+QStringW to_QStringW(const T_NUMBER& number)
+{
+    if (number == 0)
+        return L"0";
+
+    bool minus = (number < 0);
+    if (minus)
+        number = -number;
+
+    QStringW ret;
+    auto psz = ret.data();
+    auto pch = psz;
+
+    do
+    {
+        *pch++ = (wchar_t)(L'0' + (number % 10));
+        number /= 10;
+    } while (number > 0);
+    *pch = 0;
+
+    ret.m_nLength = pch - psz;
+    assert(ret.m_nLength < QStringW::SSO_MAX_SIZE);
+
+    if (minus)
+        ret += L'-';
+
+    std::reverse(ret.begin(), ret.end());
+    return ret;
+}
 
 namespace std
 {

@@ -164,6 +164,13 @@ void test_QStringA(void)
     fmt.format("%s, %d", "Number", 42);
     assert(strcmp(fmt.c_str(), "Number, 42") == 0);
 
+    assert(to_QStringA(0) == "0");
+    assert(to_QStringA(-1) == "-1");
+    assert(to_QStringA(100) == "100");
+    assert(to_QStringA(0x7FFFFFFF) == "2147483647");
+    assert(to_QStringA(0x80000000) == "-2147483648");
+    assert(to_QStringA(0x80000000UL) == "2147483648");
+
     std::cout << "hash: " << std::hash<QStringA>{}(sub) << std::endl;
 }
 
@@ -223,6 +230,13 @@ void test_string(void)
     //std::string fmt;
     //fmt.format("%s, %d", "Number", 42);
     //assert(strcmp(fmt.c_str(), "Number, 42") == 0);
+
+    assert(std::to_string(0) == "0");
+    assert(std::to_string(-1) == "-1");
+    assert(std::to_string(100) == "100");
+    assert(std::to_string(0x7FFFFFFF) == "2147483647");
+    assert(std::to_string(0x80000000) == "-2147483648");
+    assert(std::to_string(0x80000000UL) == "2147483648");
 
     std::cout << "hash: " << std::hash<std::string>{}(sub) << std::endl;
 }
