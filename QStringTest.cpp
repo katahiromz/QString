@@ -44,8 +44,8 @@ void speed_test_CStringA(void)
 
     speed_test("QStringA string literal", [&]() {
         for (int i = 0; i < ITERATIONS; ++i) {
-            QStringA str(QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldfajklfjakfjlskjdfjalsjdkfa"));
-            str += QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldfajklfjakfjlskjdfjalsjdkfa");
+            QStringA str(QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf"));
+            str += QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf");
         }
     });
 }
@@ -74,8 +74,8 @@ void speed_test_string(void)
 
     speed_test("std::string string literal", [&]() {
         for (int i = 0; i < ITERATIONS; ++i) {
-            std::string str("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldfajklfjakfjlskjdfjalsjdkfa");
-            str += "asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldfajklfjakfjlskjdfjalsjdkfa";
+            std::string str("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf");
+            str += "asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf";
         }
     });
 }
