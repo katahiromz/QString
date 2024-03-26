@@ -31,15 +31,19 @@ void speed_test_CStringA(void)
     });
 
     speed_test("CStringA find 1", [&]() {
+        size_t index = 0;
         for (int i = 0; i < ITERATIONS; ++i) {
-            size_t index = str.find('t');
+            index += str.find('t');
         }
+        printf("index: %d\n", (int)index);
     });
 
     speed_test("CStringA find 2", [&]() {
+        size_t index = 0;
         for (int i = 0; i < ITERATIONS; ++i) {
-            size_t index = str.find("te");
+            index += str.find("te");
         }
+        printf("index: %d\n", (int)index);
     });
 
     speed_test("QStringA string literal", [&]() {
@@ -61,15 +65,19 @@ void speed_test_string(void)
     });
 
     speed_test("std::string find 1", [&]() {
+        size_t index = 0;
         for (int i = 0; i < ITERATIONS; ++i) {
-            size_t index = str.find('t');
+            index += str.find('t');
         }
+        printf("index: %d\n", (int)index);
     });
 
     speed_test("std::string find 2", [&]() {
+        size_t index = 0;
         for (int i = 0; i < ITERATIONS; ++i) {
-            size_t index = str.find("te");
+            index += str.find("te");
         }
+        printf("index: %d\n", (int)index);
     });
 
     speed_test("std::string string literal", [&]() {
