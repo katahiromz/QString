@@ -872,6 +872,49 @@ public:
         return find_first_not_of(str.m_pszText, index, str.m_nLength);
     }
 
+    size_type find_last_of(T_CHAR ch, size_type index = npos) const XNOEXCEPT
+    {
+        if (m_nLength == 0)
+            return npos;
+        if (index >= m_nLength)
+            index = m_nLength - 1;
+        for (size_type i = index; i != npos; --i)
+        {
+            if (m_pszText[i] == ch)
+                return i;
+        }
+        return npos;
+    }
+
+    inline size_type find_last_of(const T_CHAR *psz, size_type index = npos) const XNOEXCEPT
+    {
+        return find_last_of(psz, index, _length(psz));
+    }
+    size_type find_last_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
+    {
+        if (m_nLength == 0 || cchText == 0)
+            return npos;
+
+        if (index >= m_nLength)
+            index = m_nLength - 1;
+
+        const T_CHAR *start = m_pszText;
+        const T_CHAR *end = &m_pszText[index + 1];
+        for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
+        {
+            for (size_type i = 0; i < cchText; ++i)
+            {
+                if (*ptr == pszText[i])
+                    return ptr - start;
+            }
+        }
+        return npos;
+    }
+    inline size_type find_last_of(const self_type& str, size_type index = npos) const XNOEXCEPT
+    {
+        return find_last_of(str.m_pszText, index, str.m_nLength);
+    }
+
     size_t hash() const
     {
         const uint8_t *pb = (const uint8_t *)m_pszText;
