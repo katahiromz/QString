@@ -1,4 +1,4 @@
-// QString --- Quick String by katahiromz
+// QString Version 0.1 --- Quick String by katahiromz
 // License: MIT
 #pragma once
 
@@ -966,6 +966,11 @@ public:
     {
         return find_last_not_of(str.m_pszText, index, str.m_nLength);
     }
+
+          T_CHAR* begin()       { return m_pszText; }
+    const T_CHAR* begin() const { return m_pszText; }
+          T_CHAR* end()       { return &m_pszText[m_nLength]; }
+    const T_CHAR* end() const { return &m_pszText[m_nLength]; }
 
     size_t hash() const
     {
