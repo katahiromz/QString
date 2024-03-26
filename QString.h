@@ -805,7 +805,7 @@ public:
         }
         return npos;
     }
-    size_type find_first_of(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
+    inline size_type find_first_of(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
     {
         return find_first_of(psz, index, _length(psz));
     }
@@ -825,9 +825,51 @@ public:
         }
         return npos;
     }
-    size_type find_first_of(const self_type& str, size_type index = 0) const XNOEXCEPT
+    inline size_type find_first_of(const self_type& str, size_type index = 0) const XNOEXCEPT
     {
         return find_first_of(str.m_pszText, index, str.m_nLength);
+    }
+
+    size_type find_first_not_of(T_CHAR ch, size_type index = 0) const XNOEXCEPT
+    {
+        if (index >= m_nLength)
+            return npos;
+        for (; index < m_nLength; ++index)
+        {
+            if (m_pszText[index] != ch)
+                return index;
+        }
+        return npos;
+    }
+    inline size_type find_first_not_of(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
+    {
+        return find_first_not_of(psz, index, _length(psz));
+    }
+    size_type find_first_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
+    {
+        if (index >= m_nLength)
+            return npos;
+
+        const T_CHAR *end = &m_pszText[m_nLength];
+        for (const T_CHAR *ptr = &m_pszText[index]; ptr < end; ++ptr)
+        {
+            bool found = false;
+            for (size_type i = 0; i < cchText; ++i)
+            {
+                if (*ptr == pszText[i])
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return ptr - m_pszText;
+        }
+        return npos;
+    }
+    inline size_type find_first_not_of(const self_type& str, size_type index = 0) const XNOEXCEPT
+    {
+        return find_first_not_of(str.m_pszText, index, str.m_nLength);
     }
 
     size_t hash() const
