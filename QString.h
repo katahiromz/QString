@@ -14,8 +14,11 @@
 
 #include <emmintrin.h> // SSE2
 #include <cassert>
-#include <algorithm>
 #include <strsafe.h>
+
+#ifndef _INC_WINDOWS
+typedef size_t SIZE_T;
+#endif
 
 template <typename T_CHAR, SIZE_T t_size>
 struct QStringLiteral
@@ -43,8 +46,8 @@ public:
     static const size_type npos = -1;
 
 protected:
-    inline size_type _length(const  CHAR *psz) const noexcept { return strlen(psz); }
-    inline size_type _length(const WCHAR *psz) const noexcept { return wcslen(psz); }
+    inline size_type _length(const  char   *psz) const noexcept { return strlen(psz); }
+    inline size_type _length(const wchar_t *psz) const noexcept { return wcslen(psz); }
 
     inline bool is_alloc() const noexcept
     {
@@ -139,20 +142,20 @@ protected:
         _insert_0(index, pszText, cchText);
     }
 
-    inline void _fill(size_type count, CHAR ch) noexcept
+    inline void _fill(size_type count, char ch) noexcept
     {
         memset(m_pszText, ch, count);
     }
-    inline void _fill(size_type index, size_type count, CHAR ch) noexcept
+    inline void _fill(size_type index, size_type count, char ch) noexcept
     {
         memset(&m_pszText[index], ch, count);
     }
 
-    inline void _fill(size_type count, WCHAR ch) noexcept
+    inline void _fill(size_type count, wchar_t ch) noexcept
     {
         _fill(0, count, ch);
     }
-    void _fill(size_type index, size_type count, WCHAR ch) noexcept
+    void _fill(size_type index, size_type count, wchar_t ch) noexcept
     {
         count += index;
 #ifdef NDEBUG
@@ -182,33 +185,33 @@ protected:
         return _compare(m_pszText, pszText, cchText);
     }
 
-    inline int _icompare(const CHAR *psz, const CHAR *pszText, size_type cchText) const noexcept
+    inline int _icompare(const char *psz, const char *pszText, size_type cchText) const noexcept
     {
         return _strnicmp(psz, pszText, cchText);
     }
-    inline int _icompare(const WCHAR *psz, const WCHAR *pszText, size_type cchText) const noexcept
+    inline int _icompare(const wchar_t *psz, const wchar_t *pszText, size_type cchText) const noexcept
     {
         return _wcsnicmp(psz, pszText, cchText);
     }
-    inline int _icompare(const CHAR *pszText, size_type cchText) const noexcept
+    inline int _icompare(const char *pszText, size_type cchText) const noexcept
     {
         return _icompare(m_pszText, pszText, cchText);
     }
-    inline int _icompare(const WCHAR *pszText, size_type cchText) const noexcept
+    inline int _icompare(const wchar_t *pszText, size_type cchText) const noexcept
     {
         return _icompare(m_pszText, pszText, cchText);
     }
 
-    inline size_type _format_v(const CHAR *fmt, va_list va) noexcept
+    inline size_type _format_v(const char *fmt, va_list va) noexcept
     {
-        CHAR szBuf[1024];
+        char szBuf[1024];
         StringCchVPrintfA(szBuf, _countof(szBuf), fmt, va);
         *this = szBuf;
         return strlen(szBuf);
     }
-    inline size_type _format_v(const WCHAR *fmt, va_list va) noexcept
+    inline size_type _format_v(const wchar_t *fmt, va_list va) noexcept
     {
-        WCHAR szBuf[1024];
+        wchar_t szBuf[1024];
         StringCchVPrintfW(szBuf, _countof(szBuf), fmt, va);
         *this = szBuf;
         return wcslen(szBuf);
@@ -776,6 +779,10 @@ public:
     }
 };
 
-typedef QStringT<CHAR>  QStringA;
-typedef QStringT<WCHAR> QStringW;
-typedef QStringT<TCHAR> QString;
+typedef QStringT<char>    QStringA;
+typedef QStringT<wchar_t> QStringW;
+#ifdef _INC_WINDOWS
+    typedef QStringT<TCHAR> QString;
+#else
+    typedef QStringA QString;
+#endif

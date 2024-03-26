@@ -1,4 +1,3 @@
-#include <windows.h>
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
@@ -11,60 +10,60 @@
 const int ITERATIONS = 100000000;
 const char* pattern = "test";
 
-void speed_test_CStringA(void)
+template <typename T_FN>
+void speed_test(const char *name, T_FN fn)
 {
-    QStringA qstr;
     auto start = std::chrono::steady_clock::now();
-    for (int i = 0; i < ITERATIONS; ++i) {
-        qstr += pattern;
-    }
+    fn();
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << "QStringA concatenation time: " << duration << " ms" << std::endl;
+    std::cout << name << " time: " << duration << " ms" << std::endl;
+}
 
-    start = std::chrono::steady_clock::now();
-    for (int i = 0; i < ITERATIONS; ++i) {
-        size_t index = qstr.find('t');
-    }
-    end = std::chrono::steady_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << "QStringA find time: " << duration << " ms" << std::endl;
+void speed_test_CStringA(void)
+{
+    QStringA str;
 
-    start = std::chrono::steady_clock::now();
-    for (int i = 0; i < ITERATIONS; ++i) {
-        size_t index = qstr.find("te");
-    }
-    end = std::chrono::steady_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << "QStringA find time: " << duration << " ms" << std::endl;
+    speed_test("CStringA concatnate", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str += pattern;
+        }
+    });
+
+    speed_test("CStringA find 1", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            size_t index = str.find('t');
+        }
+    });
+
+    speed_test("CStringA find 2", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            size_t index = str.find("te");
+        }
+    });
 }
 
 void speed_test_string(void)
 {
-    std::string stdstr;
-    auto start = std::chrono::steady_clock::now();
-    for (int i = 0; i < ITERATIONS; ++i) {
-        stdstr += pattern;
-    }
-    auto end = std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << "std::string concatenation time: " << duration << " ms" << std::endl;
+    std::string str;
 
-    start = std::chrono::steady_clock::now();
-    for (int i = 0; i < ITERATIONS; ++i) {
-        size_t index = stdstr.find('t');
-    }
-    end = std::chrono::steady_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << "std::string find time: " << duration << " ms" << std::endl;
+    speed_test("std::string concatnate", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str += pattern;
+        }
+    });
 
-    start = std::chrono::steady_clock::now();
-    for (int i = 0; i < ITERATIONS; ++i) {
-        size_t index = stdstr.find("te");
-    }
-    end = std::chrono::steady_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    std::cout << "std::string find time: " << duration << " ms" << std::endl;
+    speed_test("std::string find 1", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            size_t index = str.find('t');
+        }
+    });
+
+    speed_test("std::string find 2", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            size_t index = str.find("te");
+        }
+    });
 }
 
 int main(void)
