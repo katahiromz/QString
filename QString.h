@@ -97,7 +97,11 @@ protected:
         return true;
     }
 
-    inline bool _resize(size_type nNewCapacity, bool alloc = is_alloc()) noexcept
+    inline bool _resize(size_type nNewCapacity) noexcept
+    {
+        return _resize(nNewCapacity, is_alloc());
+    }
+    inline bool _resize(size_type nNewCapacity, bool alloc) noexcept
     {
         if (nNewCapacity <= m_nCapacity)
             return true;
