@@ -1,4 +1,4 @@
-// QString Version 0.1 --- Quick String by katahiromz
+// QString Version 0.2 --- Quick String by katahiromz
 // License: MIT
 #pragma once
 
@@ -335,7 +335,8 @@ public:
     inline       T_CHAR& operator[](size_type index)       XNOEXCEPT { return m_pszText[index]; }
     inline const T_CHAR& operator[](size_type index) const XNOEXCEPT { return m_pszText[index]; }
 
-    inline T_CHAR *data()                  XNOEXCEPT { return m_pszText; }
+    inline       T_CHAR *data()       XNOEXCEPT { return m_pszText; }
+    inline const T_CHAR *data() const XNOEXCEPT { return m_pszText; }
     inline const T_CHAR *c_str() const     XNOEXCEPT { return m_pszText; }
     //inline operator const T_CHAR *() const XNOEXCEPT { return m_pszText; }
     inline size_type size() const          XNOEXCEPT { return m_nLength; }
@@ -376,6 +377,10 @@ public:
     inline void assign(const T_CHAR *pszText) XNOEXCEPT
     {
         _copy(pszText, _length(pszText));
+    }
+    inline void assign(const T_CHAR *pszText, size_type cchText) XNOEXCEPT
+    {
+        _copy(pszText, cchText);
     }
     inline void assign(const T_CHAR *pch0, const T_CHAR *pch1) XNOEXCEPT
     {
@@ -969,6 +974,11 @@ public:
           T_CHAR* end()       { return &m_pszText[m_nLength]; }
     const T_CHAR* end() const { return &m_pszText[m_nLength]; }
 
+    void push_back(T_CHAR ch)
+    {
+        *this += ch;
+    }
+
     size_t hash() const
     {
         const uint8_t *pb = (const uint8_t *)m_pszText;
@@ -1032,11 +1042,53 @@ public:
     }
 }; // class QStringT
 
+template <typename T_CHAR>
+inline QStringT<T_CHAR> operator+(T_CHAR ch, const QStringT<T_CHAR>& str)
+{
+    QStringT<T_CHAR> ret;
+    ret += ch;
+    ret += str;
+    return ret;
+}
+template <typename T_CHAR>
+inline QStringT<T_CHAR> operator+(const T_CHAR *psz, const QStringT<T_CHAR>& str)
+{
+    QStringT<T_CHAR> ret;
+    ret += psz;
+    ret += str;
+    return ret;
+}
+template <typename T_CHAR>
+inline QStringT<T_CHAR> operator+(const QStringT<T_CHAR>& str, T_CHAR ch)
+{
+    QStringT<T_CHAR> ret;
+    ret += str;
+    ret += ch;
+    return ret;
+}
+template <typename T_CHAR>
+inline QStringT<T_CHAR> operator+(const QStringT<T_CHAR>& str, const T_CHAR *psz)
+{
+    QStringT<T_CHAR> ret;
+    ret += str;
+    ret += psz;
+    return ret;
+}
+template <typename T_CHAR>
+inline QStringT<T_CHAR> operator+(const QStringT<T_CHAR>& str1, const QStringT<T_CHAR>& str2)
+{
+    QStringT<T_CHAR> ret;
+    ret.reserve(str1.size() + str2.size());
+    ret += str1;
+    ret += str2;
+    return ret;
+}
+
 typedef QStringT<char>    QStringA;
 typedef QStringT<wchar_t> QStringW;
 
 template <typename T_NUMBER>
-QStringA to_QStringA(const T_NUMBER& number)
+QStringA to_QStringA(T_NUMBER number)
 {
     if (number == 0)
         return "0";
@@ -1067,7 +1119,7 @@ QStringA to_QStringA(const T_NUMBER& number)
 }
 
 template <typename T_NUMBER>
-QStringW to_QStringW(const T_NUMBER& number)
+QStringW to_QStringW(T_NUMBER number)
 {
     if (number == 0)
         return L"0";
@@ -1095,6 +1147,22 @@ QStringW to_QStringW(const T_NUMBER& number)
 
     std::reverse(ret.begin(), ret.end());
     return ret;
+}
+
+template <>
+inline QStringA to_QStringA(double number)
+{
+    char buf[256];
+    StringCbPrintfA(buf, sizeof(buf), "%lf", number);
+    return buf;
+}
+
+template <>
+inline QStringW to_QStringW(double number)
+{
+    wchar_t buf[256];
+    StringCbPrintfW(buf, sizeof(buf), L"%lf", number);
+    return buf;
 }
 
 #ifdef UNICODE
