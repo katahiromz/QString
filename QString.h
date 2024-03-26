@@ -829,7 +829,7 @@ public:
         }
 
         // Process remaining bytes
-        cb %= 16;
+        cb &= 0xF;
         if (cb >= 8)
         {
             result ^= *(const uint32_t *)pb;
