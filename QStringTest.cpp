@@ -29,6 +29,14 @@ void speed_test_CStringA(void)
     end = std::chrono::steady_clock::now();
     duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "QStringA find time: " << duration << " ms" << std::endl;
+
+    start = std::chrono::steady_clock::now();
+    for (int i = 0; i < ITERATIONS; ++i) {
+        size_t index = qstr.find("te");
+    }
+    end = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "QStringA find time: " << duration << " ms" << std::endl;
 }
 
 void speed_test_string(void)
@@ -45,6 +53,14 @@ void speed_test_string(void)
     start = std::chrono::steady_clock::now();
     for (int i = 0; i < ITERATIONS; ++i) {
         size_t index = stdstr.find('t');
+    }
+    end = std::chrono::steady_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "std::string find time: " << duration << " ms" << std::endl;
+
+    start = std::chrono::steady_clock::now();
+    for (int i = 0; i < ITERATIONS; ++i) {
+        size_t index = stdstr.find("te");
     }
     end = std::chrono::steady_clock::now();
     duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();

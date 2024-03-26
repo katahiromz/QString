@@ -14,6 +14,7 @@
 
 #include <emmintrin.h> // SSE2
 #include <cassert>
+#include <algorithm>
 #include <strsafe.h>
 
 template <typename T_CHAR, SIZE_T t_size>
@@ -616,21 +617,50 @@ public:
 
     inline size_type find(T_CHAR ch, size_type index = 0) const noexcept
     {
-        return find(&ch, index, 1);
+        if (index >= m_nLength)
+            return npos;
+        for (; index < m_nLength; ++index)
+        {
+            if (m_pszText[index] == ch)
+                return index;
+        }
+        return npos;
     }
     inline size_type find(const T_CHAR *psz, size_type index = 0) const noexcept
     {
         return find(psz, index, _length(psz));
     }
-    inline size_type find(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
+    size_type find(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
     {
-        for (; index < m_nLength; ++index)
-        {
-            if (index + cchText > m_nLength)
-                break;
-            if (_compare(&m_pszText[index], pszText, cchText) == 0)
-                return index;
+        if (index >= m_nLength || cchText == 0 || cchText > m_nLength - index)
+            return npos;
+
+        const T_CHAR *str = &m_pszText[index];
+        const T_CHAR *end = &m_pszText[m_nLength - cchText + 1];
+
+        while (str < end) {
+            const T_CHAR *p = &pszText[cchText - 1];
+            const T_CHAR *s = &str[cchText - 1];
+            while (p >= pszText) {
+                if (*s != *p) {
+                    break;
+                }
+                --s;
+                --p;
+            }
+            if (p < pszText)
+                return str - m_pszText;
+
+            size_type skip = 1;
+            for (size_type i = 0; i < cchText - 1; ++i) {
+                if (pszText[i] == *s) {
+                    skip = cchText - i - 1;
+                    break;
+                }
+            }
+            str += skip;
         }
+
         return npos;
     }
     inline size_type find(const self_type& str, size_type index = 0) const noexcept
@@ -640,21 +670,51 @@ public:
 
     inline size_type rfind(T_CHAR ch, size_type index = 0) const noexcept
     {
-        return rfind(&ch, index, 1);
+        if (index >= m_nLength)
+            return npos;
+
+        for (size_type rindex = m_nLength; rindex > 0; )
+        {
+            --rindex;
+            if (m_pszText[rindex] == ch)
+                return rindex;
+        }
+        return npos;
     }
     inline size_type rfind(const T_CHAR *psz, size_type index = 0) const noexcept
     {
         return rfind(psz, index, _length(psz));
     }
-    inline size_type rfind(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
+    size_type rfind(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
     {
-        if (m_nLength < cchText)
+        if (index >= m_nLength || cchText == 0 || cchText > m_nLength - index)
             return npos;
-        for (size_type rindex = m_nLength - cchText; rindex < m_nLength; --rindex)
-        {
-            if (_compare(&m_pszText[rindex], pszText, cchText) == 0)
-                return rindex;
+
+        const T_CHAR* str = &m_pszText[m_nLength - cchText];
+        const T_CHAR* end = &m_pszText[index + cchText];
+
+        while (str >= m_pszText) {
+            const T_CHAR* p = &pszText[cchText - 1];
+            const T_CHAR* s = &str[cchText - 1];
+
+            while (p >= pszText) {
+                if (*s != *p)
+                    break;
+                --s;
+                --p;
+            }
+
+            if (p < pszText)
+                return str - m_pszText;
+
+            const T_CHAR* q = p;
+            while (q >= pszText && *q != *s) {
+                --q;
+            }
+
+            str -= p - q;
         }
+
         return npos;
     }
     inline size_type rfind(const self_type& str, size_type index = 0) const noexcept
