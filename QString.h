@@ -939,7 +939,7 @@ public:
 
         if (index >= m_nLength)
             index = m_nLength - 1;
-        
+
         const T_CHAR *start = m_pszText;
         const T_CHAR *end = &m_pszText[index + 1];
         for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
