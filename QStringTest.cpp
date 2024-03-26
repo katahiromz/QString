@@ -8,7 +8,6 @@
 #include "QString.h"
 
 const int ITERATIONS = 100000000;
-const char* pattern = "test";
 
 template <typename T_FN>
 void speed_test(const char *name, T_FN fn)
@@ -25,6 +24,14 @@ void speed_test_CStringA(void)
     QStringA str;
 
     speed_test("CStringA concatnate", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str += "test";
+        }
+    });
+
+    str.clear();
+    speed_test("QStringA concatnate 2", [&]() {
+        QStringA pattern = "test";
         for (int i = 0; i < ITERATIONS; ++i) {
             str += pattern;
         }
@@ -46,12 +53,14 @@ void speed_test_CStringA(void)
         printf("index: %d\n", (int)index);
     });
 
+#if 0
     speed_test("QStringA string literal", [&]() {
         for (int i = 0; i < ITERATIONS; ++i) {
             QStringA str(QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf"));
             str += QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf");
         }
     });
+#endif
 }
 
 void speed_test_string(void)
@@ -59,6 +68,14 @@ void speed_test_string(void)
     std::string str;
 
     speed_test("std::string concatnate", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str += "test";
+        }
+    });
+
+    str.clear();
+    speed_test("std::string concatnate 2", [&]() {
+        std::string pattern = "test";
         for (int i = 0; i < ITERATIONS; ++i) {
             str += pattern;
         }
@@ -80,12 +97,14 @@ void speed_test_string(void)
         printf("index: %d\n", (int)index);
     });
 
+#if 0
     speed_test("std::string string literal", [&]() {
         for (int i = 0; i < ITERATIONS; ++i) {
             std::string str("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf");
             str += "asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf";
         }
     });
+#endif
 }
 
 void test_QStringA(void)
@@ -181,19 +200,19 @@ void test_string(void)
     assert(str1.compare("World") < 0);
     assert(str1.compare("Apple") > 0);
 
-    assert(str1.icompare("hello") == 0);
-    assert(str1.icompare("WORLD") < 0);
-    assert(str1.icompare("apple") > 0);
+    //assert(str1.icompare("hello") == 0);
+    //assert(str1.icompare("WORLD") < 0);
+    //assert(str1.icompare("apple") > 0);
 
     assert(str1.find('e') == 1);
     assert(str1.find("lo") == 3);
     assert(str1.rfind('l') == 3);
     assert(str1.rfind("el") == 1);
-    assert(str1.ifind('E') == 1);
-    assert(str1.ifind("LO") == 3);
+    //assert(str1.ifind('E') == 1);
+    //assert(str1.ifind("LO") == 3);
     assert(str1.find("llo") == 2);
     assert(str1.find("LLO") == str1.npos);
-    assert(str1.ifind("LLO") == 2);
+    //assert(str1.ifind("LLO") == 2);
     assert(str1.rfind("l") == 3);
 
     std::string sub = str1.substr(1, 3);

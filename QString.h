@@ -423,7 +423,7 @@ public:
     }
     inline void operator+=(const self_type& str) XNOEXCEPT
     {
-        append(str.m_pszText, str.m_nLength);
+        append(str);
     }
     template <size_type t_size>
     inline void operator+=(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
