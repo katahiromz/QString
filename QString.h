@@ -17,6 +17,7 @@
 #endif
 
 #include <emmintrin.h> // SSE2
+#include <cstdint>
 #include <cassert>
 #include <strsafe.h>
 
@@ -791,7 +792,29 @@ public:
     {
         return ifind(str.m_pszText, index, str.m_nLength);
     }
-};
+
+    size_t hash() const
+    {
+        size_t cb = m_nLength * sizeof(T_CHAR);
+        size_t result = 0xDEADFACE + cb;
+        const uint8_t *pb = (const uint8_t *)m_pszText;
+        while (cb >= 4)
+        {
+            result ^= *(uint32_t *)pb;
+            pb += 4;
+            cb -= 4;
+        }
+        if (cb >= 2)
+        {
+            result ^= *(uint16_t *)pb;
+            pb += 2;
+            cb -= 2;
+        }
+        if (cb)
+            result ^= *pb;
+        return result;
+    }
+}; // class QStringT
 
 typedef QStringT<char>    QStringA;
 typedef QStringT<wchar_t> QStringW;
@@ -800,3 +823,25 @@ typedef QStringT<wchar_t> QStringW;
 #else
     typedef QStringA QString;
 #endif
+
+namespace std
+{
+    template<>
+    class hash<QStringA>
+    {
+    public:
+        inline size_t operator()(const QStringA& str) const
+        {
+            return str.hash();
+        }
+    };
+    template<>
+    class hash<QStringW>
+    {
+    public:
+        inline size_t operator()(const QStringW& str) const
+        {
+            return str.hash();
+        }
+    };
+} // namespace std
