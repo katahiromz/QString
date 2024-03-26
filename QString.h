@@ -795,23 +795,25 @@ public:
 
     size_t hash() const
     {
+        const uint8_t *pb = (const uint8_t *)m_pszText;
         size_t cb = m_nLength * sizeof(T_CHAR);
         size_t result = 0xDEADFACE + cb;
-        const uint8_t *pb = (const uint8_t *)m_pszText;
-        while (cb >= 4)
+
+        for (size_t cdw = cb / sizeof(uint32_t); cdw > 0; cdw--)
         {
-            result ^= *(uint32_t *)pb;
+            result ^= *(const uint32_t *)pb;
             pb += 4;
-            cb -= 4;
         }
-        if (cb >= 2)
+
+        if ((cb & 3) >= sizeof(uint16_t))
         {
-            result ^= *(uint16_t *)pb;
+            result ^= *(const uint16_t *)pb;
             pb += 2;
-            cb -= 2;
         }
-        if (cb)
+
+        if (cb & 1)
             result ^= *pb;
+
         return result;
     }
 }; // class QStringT
