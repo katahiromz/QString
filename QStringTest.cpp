@@ -41,6 +41,13 @@ void speed_test_CStringA(void)
             size_t index = str.find("te");
         }
     });
+
+    speed_test("QStringA string literal", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            QStringA str(QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldfajklfjakfjlskjdfjalsjdkfa"));
+            str += QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldfajklfjakfjlskjdfjalsjdkfa");
+        }
+    });
 }
 
 void speed_test_string(void)
@@ -62,6 +69,13 @@ void speed_test_string(void)
     speed_test("std::string find 2", [&]() {
         for (int i = 0; i < ITERATIONS; ++i) {
             size_t index = str.find("te");
+        }
+    });
+
+    speed_test("std::string string literal", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            std::string str("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldfajklfjakfjlskjdfjalsjdkfa");
+            str += "asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldfajklfjakfjlskjdfjalsjdkfa";
         }
     });
 }
