@@ -261,7 +261,6 @@ public:
     {
         m_szText[0] = 0;
     }
-
     inline QStringT(const T_CHAR *pszText) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
@@ -269,7 +268,6 @@ public:
     {
         _copy(pszText, _length(pszText));
     }
-
     inline QStringT(const T_CHAR *pch0, const T_CHAR *pch1) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
@@ -277,16 +275,6 @@ public:
     {
         _copy(pch0, pch1 - pch0);
     }
-
-    template <size_type t_size>
-    inline QStringT(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
-        : m_pszText(m_szText)
-        , m_nLength(0)
-        , m_nCapacity(SSO_MAX_SIZE)
-    {
-        _copy(literal, t_size - 1);
-    }
-
     inline QStringT(const T_CHAR *pszText, size_type cchText) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
@@ -294,7 +282,6 @@ public:
     {
         _copy(pszText, cchText);
     }
-
     inline QStringT(const self_type& str) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
@@ -302,7 +289,6 @@ public:
     {
         _copy(str.m_pszText, str.m_nLength);
     }
-
     inline QStringT(self_type&& str) XNOEXCEPT
     {
         bool alloc = str.is_alloc();
@@ -311,7 +297,6 @@ public:
             m_pszText = m_szText;
         str._reset();
     }
-
     inline QStringT(size_type count, T_CHAR ch) XNOEXCEPT
         : m_pszText(m_szText)
         , m_nLength(0)
@@ -325,6 +310,23 @@ public:
 
         _fill(count, ch);
         m_pszText[count] = 0;
+    }
+    inline QStringT(std::initializer_list<T_CHAR> initList) XNOEXCEPT
+        : m_pszText(m_szText)
+        , m_nLength(0)
+        , m_nCapacity(SSO_MAX_SIZE)
+    {
+        for (const T_CHAR* it = initList.begin(); it != initList.end(); ++it) {
+            operator+=(*it);
+        }
+    }
+    template <size_type t_size>
+    inline QStringT(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
+        : m_pszText(m_szText)
+        , m_nLength(0)
+        , m_nCapacity(SSO_MAX_SIZE)
+    {
+        _copy(literal, t_size - 1);
     }
 
     inline ~QStringT() XNOEXCEPT
