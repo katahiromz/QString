@@ -1,4 +1,4 @@
-// QString Version 0.2 --- Quick String by katahiromz
+// QString Version 0.3 --- Quick String by katahiromz
 // License: MIT
 #pragma once
 
@@ -309,7 +309,8 @@ public:
             return;
 
         _fill(count, ch);
-        m_pszText[count] = 0;
+        m_nLength = count;
+        m_pszText[m_nLength] = 0;
     }
     inline QStringT(std::initializer_list<T_CHAR> initList) XNOEXCEPT
         : m_pszText(m_szText)
@@ -409,7 +410,8 @@ public:
             return;
 
         _fill(count, ch);
-        m_pszText[count] = 0;
+        m_nLength = count;
+        m_pszText[m_nLength] = 0;
     }
     template <size_type t_size>
     inline void assign(const QStringLiteral<T_CHAR, t_size>& literal) XNOEXCEPT
