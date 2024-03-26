@@ -65,32 +65,44 @@ protected:
         m_nCapacity = SSO_MAX_SIZE;
     }
 
-    bool _resize(size_type nNewCapacity) noexcept
+    bool _resize_0(size_type nNewCapacity, bool alloc) noexcept
     {
-        if (nNewCapacity <= m_nCapacity)
-            return true;
-
-        nNewCapacity = (nNewCapacity * 3) / 2;
+        nNewCapacity *= 2;
 
         size_type nNewSize = nNewCapacity * sizeof(T_CHAR);
 
-        bool alloc = is_alloc();
-        T_CHAR *pszNew = (T_CHAR*)(alloc ? XREALLOC(m_pszText, nNewSize) : XMALLOC(nNewSize));
-        if (!pszNew)
+        T_CHAR *pszNew;
+        if (alloc)
         {
-            XTHROW(1);
-            return false;
+            pszNew = (T_CHAR*)XREALLOC(m_pszText, nNewSize);
+            if (!pszNew)
+            {
+                XTHROW(1);
+                return false;
+            }
         }
-
-        if (!alloc)
+        else
         {
+            pszNew = (T_CHAR*)XMALLOC(nNewSize);
+            if (!pszNew)
+            {
+                XTHROW(1);
+                return false;
+            }
             memcpy(pszNew, m_szText, m_nLength * sizeof(T_CHAR));
-            pszNew[m_nLength] = 0;
         }
 
         m_pszText = pszNew;
         m_nCapacity = nNewCapacity;
         return true;
+    }
+
+    inline bool _resize(size_type nNewCapacity, bool alloc = is_alloc()) noexcept
+    {
+        if (nNewCapacity <= m_nCapacity)
+            return true;
+
+        return _resize_0(nNewCapacity, alloc);
     }
 
     void _copy(const T_CHAR *pszText, size_type cchText) noexcept
@@ -103,7 +115,7 @@ protected:
         m_pszText[m_nLength] = 0;
     }
 
-    void _concat(const T_CHAR *pszText, size_type cchText) noexcept
+    inline void _concat(const T_CHAR *pszText, size_type cchText) noexcept
     {
         if (!cchText)
             return;
@@ -372,30 +384,34 @@ public:
         return *this;
     }
 
-    QStringT& operator+=(T_CHAR ch) noexcept
+    inline void operator+=(T_CHAR ch) noexcept
     {
         _concat(&ch, 1);
-        return *this;
     }
 
-    QStringT& operator+=(const T_CHAR *pszText) noexcept
+    inline void operator+=(const T_CHAR *pszText) noexcept
     {
-        _concat(pszText, _length(pszText));
-        return *this;
+        size_type cchText = _length(pszText);
+        size_type newLength = m_nLength + cchText;
+
+        if (!_resize(newLength + 1))
+            return;
+
+        memcpy(&m_pszText[m_nLength], pszText, cchText * sizeof(T_CHAR));
+        m_nLength = newLength;
+        m_pszText[m_nLength] = 0;
     }
 
-    QStringT& operator+=(const self_type& str) noexcept
+    inline void operator+=(const self_type& str) noexcept
     {
         _concat(str.m_pszText, str.m_nLength);
-        return *this;
     }
 
     template <size_type t_size>
-    QStringT& operator+=(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    inline void operator+=(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
     {
         assert(literal[t_size - 1] == 0);
         _concat(literal, t_size - 1);
-        return *this;
     }
 
     inline void insert(size_type index, size_type count, T_CHAR ch) noexcept
