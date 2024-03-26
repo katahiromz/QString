@@ -110,6 +110,10 @@ int main(void)
     assert(str1.rfind("el") == 1);
     assert(str1.ifind('E') == 1);
     assert(str1.ifind("LO") == 3);
+    assert(str1.find("llo") == 2);
+    assert(str1.find("LLO") == str1.npos);
+    assert(str1.ifind("LLO") == 2);
+    assert(str1.rfind("l") == 3);
 
     QStringA sub = str1.substr(1, 3);
     assert(strcmp(sub.c_str(), "ell") == 0);

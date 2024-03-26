@@ -65,16 +65,17 @@ protected:
         m_nCapacity = SSO_MAX_SIZE;
     }
 
-    bool _resize_0(size_type nNewCapacity, bool alloc) noexcept
+    inline bool _resize_0(size_type newCapacity, bool alloc) noexcept
     {
-        nNewCapacity *= 2;
-
-        size_type nNewSize = nNewCapacity * sizeof(T_CHAR);
-
+        size_type newSize = newCapacity * sizeof(T_CHAR);
+        return _resize_0(newCapacity, alloc, newSize);
+    }
+    bool _resize_0(size_type newCapacity, bool alloc, size_type newSize) noexcept
+    {
         T_CHAR *pszNew;
         if (alloc)
         {
-            pszNew = (T_CHAR*)XREALLOC(m_pszText, nNewSize);
+            pszNew = (T_CHAR*)XREALLOC(m_pszText, newSize);
             if (!pszNew)
             {
                 XTHROW(1);
@@ -83,7 +84,7 @@ protected:
         }
         else
         {
-            pszNew = (T_CHAR*)XMALLOC(nNewSize);
+            pszNew = (T_CHAR*)XMALLOC(newSize);
             if (!pszNew)
             {
                 XTHROW(1);
@@ -93,25 +94,24 @@ protected:
         }
 
         m_pszText = pszNew;
-        m_nCapacity = nNewCapacity;
+        m_nCapacity = newCapacity;
         return true;
     }
-
-    inline bool _resize(size_type nNewCapacity) noexcept
+    inline bool _resize_1(size_type newCapacity) noexcept
     {
-        return _resize(nNewCapacity, is_alloc());
+        return _resize_1(newCapacity, is_alloc());
     }
-    inline bool _resize(size_type nNewCapacity, bool alloc) noexcept
+    inline bool _resize_1(size_type newCapacity, bool alloc) noexcept
     {
-        if (nNewCapacity <= m_nCapacity)
+        if (newCapacity <= m_nCapacity)
             return true;
 
-        return _resize_0(nNewCapacity, alloc);
+        return _resize_0(newCapacity * 2, alloc);
     }
 
     void _copy(const T_CHAR *pszText, size_type cchText) noexcept
     {
-        if (!_resize(cchText + 1))
+        if (!_resize_1(cchText + 1))
             return;
 
         memcpy(m_pszText, pszText, cchText * sizeof(T_CHAR));
@@ -119,33 +119,24 @@ protected:
         m_pszText[m_nLength] = 0;
     }
 
-    inline void _concat(const T_CHAR *pszText, size_type cchText) noexcept
+    void _insert_0(size_t index, const T_CHAR *pszText, size_type cchText) noexcept
     {
-        if (!cchText)
-            return;
-
-        if (!_resize(m_nLength + cchText + 1))
-            return;
-
-        memcpy(&m_pszText[m_nLength], pszText, cchText * sizeof(T_CHAR));
-        m_nLength += cchText;
-        m_pszText[m_nLength] = 0;
-    }
-
-    void _insert(size_t index, const T_CHAR *pszText, size_type cchText) noexcept
-    {
-        assert(index <= m_nLength);
-
-        if (!cchText)
-            return;
-
-        if (!_resize(m_nLength + cchText + 1))
+        if (!_resize_1(m_nLength + cchText + 1))
             return;
 
         memmove(&m_pszText[index + cchText], &m_pszText[index], (m_nLength - index) * sizeof(T_CHAR));
         memcpy(&m_pszText[index], pszText, cchText * sizeof(T_CHAR));
         m_nLength += cchText;
         m_pszText[m_nLength] = 0;
+    }
+    inline void _insert(size_t index, const T_CHAR *pszText, size_type cchText) noexcept
+    {
+        assert(index <= m_nLength);
+
+        if (!cchText)
+            return;
+
+        _insert_0(index, pszText, cchText);
     }
 
     inline void _fill(size_type count, CHAR ch) noexcept
@@ -223,8 +214,35 @@ protected:
         return wcslen(szBuf);
     }
 
+    void _replace_0(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) noexcept
+    {
+        memmove(&m_pszText[index + cchText], &m_pszText[index + count], (m_nLength - count) * sizeof(T_CHAR));
+        memcpy(&m_pszText[index], pszText, cchText * sizeof(T_CHAR));
+        m_nLength += cchText - count;
+        m_pszText[m_nLength] = 0;
+    }
+    inline void _replace_1(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) noexcept
+    {
+        assert(index <= m_nLength);
+        assert(index + count <= m_nLength);
+
+        if (count == cchText)
+        {
+            memcpy(&m_pszText[index], pszText, count * sizeof(T_CHAR));
+            return;
+        }
+
+        if (cchText > count)
+        {
+            if (!_resize_1(m_nLength + (cchText - count) + 1))
+                return;
+        }
+
+        _replace_0(index, count, pszText, cchText);
+    }
+
 public:
-    QStringT() noexcept
+    inline QStringT() noexcept
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -232,7 +250,7 @@ public:
         m_szText[0] = 0;
     }
 
-    QStringT(const T_CHAR *pszText) noexcept
+    inline QStringT(const T_CHAR *pszText) noexcept
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -240,7 +258,7 @@ public:
         _copy(pszText, _length(pszText));
     }
 
-    QStringT(const T_CHAR *pch0, const T_CHAR *pch1) noexcept
+    inline QStringT(const T_CHAR *pch0, const T_CHAR *pch1) noexcept
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -249,7 +267,7 @@ public:
     }
 
     template <size_type t_size>
-    QStringT(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    inline QStringT(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -258,7 +276,7 @@ public:
         _copy(literal, t_size - 1);
     }
 
-    QStringT(const T_CHAR *pszText, size_type cchText) noexcept
+    inline QStringT(const T_CHAR *pszText, size_type cchText) noexcept
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -266,7 +284,7 @@ public:
         _copy(pszText, cchText);
     }
 
-    QStringT(const self_type& str) noexcept
+    inline QStringT(const self_type& str) noexcept
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -274,7 +292,7 @@ public:
         _copy(str.m_pszText, str.m_nLength);
     }
 
-    QStringT(self_type&& str) noexcept
+    inline QStringT(self_type&& str) noexcept
     {
         bool alloc = str.is_alloc();
         memcpy(this, &str, sizeof(*this));
@@ -283,7 +301,7 @@ public:
         str._reset();
     }
 
-    QStringT(size_type count, T_CHAR ch) noexcept
+    inline QStringT(size_type count, T_CHAR ch) noexcept
         : m_pszText(m_szText)
         , m_nLength(0)
         , m_nCapacity(SSO_MAX_SIZE)
@@ -291,14 +309,14 @@ public:
         if (!count)
             return;
 
-        if (!_resize(count + 1))
+        if (!_resize_1(count + 1))
             return;
 
         _fill(count, ch);
         m_pszText[count] = 0;
     }
 
-    ~QStringT() noexcept
+    inline ~QStringT() noexcept
     {
         _free();
     }
@@ -318,13 +336,18 @@ public:
         _reset();
     }
 
-    QStringT& operator=(const T_CHAR *pszText) noexcept
+    inline QStringT& operator=(const T_CHAR *pszText) noexcept
     {
         assign(pszText);
         return *this;
     }
-
-    QStringT& operator=(const self_type& str) noexcept
+    inline QStringT& operator=(const self_type& str) noexcept
+    {
+        if (this != &str)
+            assign(str);
+        return *this;
+    }
+    inline QStringT& operator=(self_type&& str) noexcept
     {
         if (this == &str)
             return *this;
@@ -332,35 +355,28 @@ public:
         assign(str);
         return *this;
     }
-
     template <size_type t_size>
-    QStringT& operator=(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    inline QStringT& operator=(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
     {
         assert(literal[t_size - 1] == 0);
         assign(literal);
         return *this;
     }
 
-    void assign(const T_CHAR *pszText) noexcept
+    inline void assign(const T_CHAR *pszText) noexcept
     {
         _copy(pszText, _length(pszText));
     }
-    void assign(const T_CHAR *pch0, const T_CHAR *pch1) noexcept
+    inline void assign(const T_CHAR *pch0, const T_CHAR *pch1) noexcept
     {
         _copy(pch0, pch1 - pch0);
     }
-    void assign(const self_type& str) noexcept
+    inline void assign(const self_type& str) noexcept
     {
         assert(this != &str);
         _copy(str.m_pszText, str.m_nLength);
     }
-    template <size_type t_size>
-    void assign(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
-    {
-        assert(literal[t_size - 1] == 0);
-        _copy(literal, t_size - 1);
-    }
-    void assign(self_type&& str) noexcept
+    inline void assign(self_type&& str) noexcept
     {
         assert(this != &str);
         _free();
@@ -370,52 +386,76 @@ public:
             m_pszText = m_szText;
         str._reset();
     }
-    void assign(size_type count, T_CHAR ch) noexcept
+    inline void assign(size_type count, T_CHAR ch) noexcept
     {
-        if (!_resize(count + 1))
+        if (!_resize_1(count + 1))
             return;
 
         _fill(count, ch);
         m_pszText[count] = 0;
     }
-
-    QStringT& operator=(self_type&& str) noexcept
+    template <size_type t_size>
+    inline void assign(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
     {
-        if (this == &str)
-            return *this;
-
-        assign(str);
-        return *this;
+        assert(literal[t_size - 1] == 0);
+        _copy(literal, t_size - 1);
     }
 
     inline void operator+=(T_CHAR ch) noexcept
     {
-        _concat(&ch, 1);
+        size_type newLength = m_nLength + 1;
+        if (!_resize_1(newLength + 1))
+            return;
+
+        m_pszText[m_nLength] = ch;
+        m_nLength = newLength;
+        m_pszText[m_nLength] = 0;
+    }
+    inline void operator+=(const T_CHAR *pszText) noexcept
+    {
+        append(pszText);
+    }
+    inline void operator+=(const self_type& str) noexcept
+    {
+        append(str.m_pszText, str.m_nLength);
+    }
+    template <size_type t_size>
+    inline void operator+=(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    {
+        assert(literal[t_size - 1] == 0);
+        append(literal, t_size - 1);
     }
 
-    inline void operator+=(const T_CHAR *pszText) noexcept
+    inline void append(size_type count, T_CHAR ch) noexcept
+    {
+        self_type str(count, ch);
+        *this += str;
+    }
+    inline void append(const T_CHAR *pszText) noexcept
     {
         size_type cchText = _length(pszText);
         size_type newLength = m_nLength + cchText;
 
-        if (!_resize(newLength + 1))
+        if (!_resize_1(newLength + 1))
             return;
 
         memcpy(&m_pszText[m_nLength], pszText, cchText * sizeof(T_CHAR));
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
     }
-
-    inline void operator+=(const self_type& str) noexcept
+    inline void append(const T_CHAR *pszText, size_type cchText) noexcept
     {
-        _concat(str.m_pszText, str.m_nLength);
+        size_type newLength = m_nLength + cchText;
+        if (!_resize_1(newLength + 1))
+            return;
+
+        memcpy(&m_pszText[m_nLength], pszText, cchText * sizeof(T_CHAR));
+        m_nLength = newLength;
+        m_pszText[m_nLength] = 0;
     }
-
-    template <size_type t_size>
-    inline void operator+=(const QStringLiteral<T_CHAR, t_size>& literal) noexcept
+    inline void append(const self_type& str) noexcept
     {
-        assert(literal[t_size - 1] == 0);
-        _concat(literal, t_size - 1);
+        append(str.m_pszText, str.m_nLength);
     }
 
     inline void insert(size_type index, size_type count, T_CHAR ch) noexcept
@@ -434,26 +474,6 @@ public:
     inline void insert(size_type index, const self_type& str) noexcept
     {
         _insert(index, str.m_pszText, str.m_nLength);
-    }
-
-    inline void append(size_type count, T_CHAR ch) noexcept
-    {
-        if (!count)
-            return;
-        self_type str(count, ch);
-        _concat(str);
-    }
-    inline void append(const T_CHAR *pszText) noexcept
-    {
-        _concat(pszText, _length(pszText));
-    }
-    inline void append(const T_CHAR *pszText, size_type cchText) noexcept
-    {
-        _concat(pszText, cchText);
-    }
-    inline void append(const self_type& str) noexcept
-    {
-        _concat(str.m_pszText, str.m_nLength);
     }
 
     inline void erase() noexcept
@@ -481,40 +501,22 @@ public:
         m_pszText[m_nLength] = 0;
     }
 
-    void replace(size_type index, size_type count, const T_CHAR *pszText) noexcept
+    inline void replace(size_type index, size_type count, const T_CHAR *pszText) noexcept
     {
         replace(index, count, pszText, _length(pszText));
     }
-    void replace(size_type index, size_type count, const self_type& str) noexcept
+    inline void replace(size_type index, size_type count, const self_type& str) noexcept
     {
         replace(index, count, str.m_pszText, str.m_nLength);
     }
-    void replace(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) noexcept
+    inline void replace(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) noexcept
     {
-        assert(index <= m_nLength);
-        assert(index + count <= m_nLength);
-
-        if (count == cchText)
-        {
-            memcpy(&m_pszText[index], pszText, count * sizeof(T_CHAR));
-            return;
-        }
-
-        if (cchText > count)
-        {
-            if (!_resize(m_nLength + (cchText - count) + 1))
-                return;
-        }
-
-        memmove(&m_pszText[index + cchText], &m_pszText[index + count], (m_nLength - count) * sizeof(T_CHAR));
-        memcpy(&m_pszText[index], pszText, cchText * sizeof(T_CHAR));
-        m_nLength += cchText - count;
-        m_pszText[m_nLength] = 0;
+        _replace_1(index, count, pszText, cchText);
     }
 
-    void resize(size_type length) noexcept
+    inline void resize(size_type length) noexcept
     {
-        if (!_resize(length + 1))
+        if (!_resize_1(length + 1))
             return;
         m_nLength = length;
         m_pszText[m_nLength] = 0;
@@ -522,7 +524,7 @@ public:
     void resize(size_type length, T_CHAR ch) noexcept
     {
         size_type len = m_nLength;
-        if (!_resize(length + 1))
+        if (!_resize_1(length + 1))
             return;
         if (length > len)
             _fill(len, length - len, ch);
@@ -530,9 +532,9 @@ public:
         m_pszText[m_nLength] = 0;
     }
 
-    void reserve(size_type length)
+    inline void reserve(size_type length)
     {
-        _resize(length + 1);
+        _resize_0(length + 1, is_alloc());
     }
 
     inline int compare(const T_CHAR *psz) const noexcept
@@ -610,11 +612,11 @@ public:
         str = std::move(tmp);
     }
 
-    self_type substr() const noexcept
+    inline self_type substr() const noexcept
     {
         return *this;
     }
-    self_type substr(size_type index) const noexcept
+    inline self_type substr(size_type index) const noexcept
     {
         assert(index <= m_nLength);
         return self_type(&m_pszText[index], m_nLength - index);
@@ -742,15 +744,22 @@ public:
         return rfind(str.m_pszText, index, str.m_nLength);
     }
 
-    inline size_type ifind(T_CHAR ch, size_type index = 0) const noexcept
+    size_type ifind(T_CHAR ch, size_type index = 0) const noexcept
     {
-        return ifind(&ch, index, 1);
+        if (index >= m_nLength)
+            return npos;
+        for (; index < m_nLength; ++index)
+        {
+            if (_icompare(&m_pszText[index], &ch, 1) == 0)
+                return index;
+        }
+        return npos;
     }
     inline size_type ifind(const T_CHAR *psz, size_type index = 0) const noexcept
     {
         return ifind(psz, index, _length(psz));
     }
-    inline size_type ifind(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
+    size_type ifind(const T_CHAR *pszText, size_type index, size_type cchText) const noexcept
     {
         for (; index < m_nLength; ++index)
         {
