@@ -923,8 +923,8 @@ public:
         if (m_nLength == 0)
             return npos;
         if (index >= m_nLength)
-            index = m_nLength;
-        for (size_type i = index - 1; i != npos; --i)
+            index = m_nLength - 1;
+        for (size_type i = index; i != npos; --i)
         {
             if (m_pszText[i] == ch)
                 return i;
@@ -937,11 +937,11 @@ public:
             return npos;
 
         if (index >= m_nLength)
-            index = m_nLength;
+            index = m_nLength - 1;
 
         const T_CHAR *start = m_pszText;
         const T_CHAR *end = &m_pszText[index];
-        for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
+        for (const T_CHAR *ptr = end; ptr >= start; --ptr)
         {
             for (const T_CHAR *pch = pszText; *pch; ++pch)
             {
@@ -957,12 +957,12 @@ public:
             return npos;
 
         if (index >= m_nLength)
-            index = m_nLength;
+            index = m_nLength - 1;
 
         const T_CHAR *start = m_pszText;
         const T_CHAR *end = &m_pszText[index];
         const T_CHAR *pchTextEnd = &pszText[cchText];
-        for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
+        for (const T_CHAR *ptr = end; ptr >= start; --ptr)
         {
             for (const T_CHAR *pch = pszText; pch < pchTextEnd; ++pch)
             {
@@ -982,8 +982,8 @@ public:
         if (m_nLength == 0)
             return npos;
         if (index >= m_nLength)
-            index = m_nLength;
-        for (size_type i = index - 1; i != npos; --i)
+            index = m_nLength - 1;
+        for (size_type i = index; i != npos; --i)
         {
             if (m_pszText[i] != ch)
                 return i;
@@ -996,11 +996,11 @@ public:
             return npos;
 
         if (index >= m_nLength)
-            index = m_nLength;
+            index = m_nLength - 1;
 
         const T_CHAR *start = m_pszText;
         const T_CHAR *end = &m_pszText[index];
-        for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
+        for (const T_CHAR *ptr = end; ptr >= start; --ptr)
         {
             bool found = false;
             for (const T_CHAR *pch = pszText; *pch; ++pch)
@@ -1022,12 +1022,12 @@ public:
             return npos;
 
         if (index >= m_nLength)
-            index = m_nLength;
+            index = m_nLength - 1;
 
         const T_CHAR *start = m_pszText;
         const T_CHAR *end = &m_pszText[index];
         const T_CHAR *pchTextEnd = &pszText[cchText];
-        for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
+        for (const T_CHAR *ptr = end; ptr >= start; --ptr)
         {
             bool found = false;
             for (const T_CHAR *pch = pszText; pch < pchTextEnd; ++pch)

@@ -185,6 +185,10 @@ void test_string(void)
     assert(str1.find_first_not_of(str2) == 0);
     assert(str1.find_last_of(str2) == 12);
     assert(str1.find_last_not_of(str2) == 11);
+    assert(str1.find_first_of(str2, 0) == 7);
+    assert(str1.find_first_not_of(str2, 0) == 0);
+    assert(str1.find_last_of(str2, 0) == str1.npos);
+    assert(str1.find_last_not_of(str2, 0) == 0);
     assert(str1.find_first_of(str2, 13) == str1.npos);
     assert(str1.find_first_not_of(str2, 13) == str1.npos);
     assert(str1.find_last_of(str2, 13) == 12);
@@ -197,6 +201,10 @@ void test_string(void)
     assert(str1.find_first_not_of("WOR!") == 0);
     assert(str1.find_last_of("WOR!") == 12);
     assert(str1.find_last_not_of("WOR!") == 11);
+    assert(str1.find_first_of("WOR!", 0) == 7);
+    assert(str1.find_first_not_of("WOR!", 0) == 0);
+    assert(str1.find_last_of("WOR!", 0) == str1.npos);
+    assert(str1.find_last_not_of("WOR!", 0) == 0);
     assert(str1.find_first_of("WOR!", 13) == str1.npos);
     assert(str1.find_first_not_of("WOR!", 13) == str1.npos);
     assert(str1.find_last_of("WOR!", 13) == 12);
@@ -285,6 +293,10 @@ void test_QStringA(void)
     assert(str1.find_first_not_of(str2) == 0);
     assert(str1.find_last_of(str2) == 12);
     assert(str1.find_last_not_of(str2) == 11);
+    assert(str1.find_first_of(str2, 0) == 7);
+    assert(str1.find_first_not_of(str2, 0) == 0);
+    assert(str1.find_last_of(str2, 0) == str1.npos);
+    assert(str1.find_last_not_of(str2, 0) == 0);
     assert(str1.find_first_of(str2, 13) == str1.npos);
     assert(str1.find_first_not_of(str2, 13) == str1.npos);
     assert(str1.find_last_of(str2, 13) == 12);
@@ -297,6 +309,10 @@ void test_QStringA(void)
     assert(str1.find_first_not_of("WOR!") == 0);
     assert(str1.find_last_of("WOR!") == 12);
     assert(str1.find_last_not_of("WOR!") == 11);
+    assert(str1.find_first_of("WOR!", 0) == 7);
+    assert(str1.find_first_not_of("WOR!", 0) == 0);
+    assert(str1.find_last_of("WOR!", 0) == str1.npos);
+    assert(str1.find_last_not_of("WOR!", 0) == 0);
     assert(str1.find_first_of("WOR!", 13) == str1.npos);
     assert(str1.find_first_not_of("WOR!", 13) == str1.npos);
     assert(str1.find_last_of("WOR!", 13) == 12);
