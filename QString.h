@@ -821,7 +821,19 @@ public:
     }
     inline size_type find_first_of(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
     {
-        return find_first_of(psz, index, _length(psz));
+        if (index >= m_nLength || cchText == 0)
+            return npos;
+
+        const T_CHAR *end = &m_pszText[m_nLength];
+        for (const T_CHAR *ptr = &m_pszText[index]; ptr < end; ++ptr)
+        {
+            for (const T_CHAR *pch = pszText; *pch; ++pch)
+            {
+                if (*ptr == *pch)
+                    return ptr - m_pszText;
+            }
+        }
+        return npos;
     }
     size_type find_first_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
@@ -829,11 +841,12 @@ public:
             return npos;
 
         const T_CHAR *end = &m_pszText[m_nLength];
+        const T_CHAR *pchTextEnd = &pszText[cchText];
         for (const T_CHAR *ptr = &m_pszText[index]; ptr < end; ++ptr)
         {
-            for (size_type i = 0; i < cchText; ++i)
+            for (const T_CHAR *pch = pszText; pch < pchTextEnd; ++pch)
             {
-                if (*ptr == pszText[i])
+                if (*ptr == *pch)
                     return ptr - m_pszText;
             }
         }
@@ -857,10 +870,6 @@ public:
     }
     inline size_type find_first_not_of(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
     {
-        return find_first_not_of(psz, index, _length(psz));
-    }
-    size_type find_first_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
-    {
         if (index >= m_nLength)
             return npos;
 
@@ -868,9 +877,32 @@ public:
         for (const T_CHAR *ptr = &m_pszText[index]; ptr < end; ++ptr)
         {
             bool found = false;
-            for (size_type i = 0; i < cchText; ++i)
+            for (const T_CHAR *pch = pszText; *pch; ++pch)
             {
-                if (*ptr == pszText[i])
+                if (*ptr == *pch)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return ptr - m_pszText;
+        }
+        return npos;
+    }
+    size_type find_first_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
+    {
+        if (index >= m_nLength)
+            return npos;
+
+        const T_CHAR *end = &m_pszText[m_nLength];
+        const T_CHAR *pchTextEnd = &pszText[cchText];
+        for (const T_CHAR *ptr = &m_pszText[index]; ptr < end; ++ptr)
+        {
+            bool found = false;
+            for (const T_CHAR *pch = pszText; pch < pchTextEnd; ++pch)
+            {
+                if (*ptr == *pch)
                 {
                     found = true;
                     break;
@@ -902,7 +934,23 @@ public:
 
     inline size_type find_last_of(const T_CHAR *psz, size_type index = npos) const XNOEXCEPT
     {
-        return find_last_of(psz, index, _length(psz));
+        if (m_nLength == 0 || cchText == 0)
+            return npos;
+
+        if (index >= m_nLength)
+            index = m_nLength - 1;
+
+        const T_CHAR *start = m_pszText;
+        const T_CHAR *end = &m_pszText[index + 1];
+        for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
+        {
+            for (const T_CHAR *pch = pszText; *pch; ++pch)
+            {
+                if (*ptr == *pch)
+                    return ptr - start;
+            }
+        }
+        return npos;
     }
     size_type find_last_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
@@ -914,11 +962,12 @@ public:
 
         const T_CHAR *start = m_pszText;
         const T_CHAR *end = &m_pszText[index + 1];
+        const T_CHAR *pchTextEnd = &pszText[cchText];
         for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
         {
-            for (size_type i = 0; i < cchText; ++i)
+            for (const T_CHAR *pch = pszText; pch < pchTextEnd; ++pch)
             {
-                if (*ptr == pszText[i])
+                if (*ptr == *pch)
                     return ptr - start;
             }
         }
@@ -944,10 +993,6 @@ public:
     }
     inline size_type find_last_not_of(const T_CHAR *psz, size_type index = npos) const XNOEXCEPT
     {
-        return find_last_not_of(psz, index, _length(psz));
-    }
-    size_type find_last_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
-    {
         if (m_nLength == 0 || cchText == 0)
             return npos;
 
@@ -959,9 +1004,36 @@ public:
         for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
         {
             bool found = false;
-            for (size_type i = 0; i < cchText; ++i)
+            for (const T_CHAR *pch = pszText; *pch; ++pch)
             {
-                if (*ptr == pszText[i])
+                if (*ptr == *pch)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return ptr - start;
+        }
+        return npos;
+    }
+    size_type find_last_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
+    {
+        if (m_nLength == 0 || cchText == 0)
+            return npos;
+
+        if (index >= m_nLength)
+            index = m_nLength - 1;
+
+        const T_CHAR *start = m_pszText;
+        const T_CHAR *end = &m_pszText[index + 1];
+        const T_CHAR *pchTextEnd = &pszText[cchText];
+        for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
+        {
+            bool found = false;
+            for (const T_CHAR *pch = pszText; pch < pchTextEnd; ++pch)
+            {
+                if (*ptr == *pch)
                 {
                     found = true;
                     break;
