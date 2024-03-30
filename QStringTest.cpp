@@ -107,73 +107,6 @@ void speed_test_string(void)
 #endif
 }
 
-void test_QStringA(void)
-{
-    std::cout << "test_QStringA" << std::endl;
-
-    QStringA str1("Hello");
-    assert(str1.size() == 5);
-    assert(strcmp(str1.c_str(), "Hello") == 0);
-
-    QStringA str2(str1);
-    assert(str1 == str2);
-
-    str2.clear();
-    assert(str2.empty());
-
-    str2 = "World";
-    assert(str2.size() == 5);
-    assert(strcmp(str2.c_str(), "World") == 0);
-
-    str2 += '!';
-    assert(str2.size() == 6);
-    assert(strcmp(str2.c_str(), "World!") == 0);
-
-    str2.insert(5, " Hello");
-    assert(strcmp(str2.c_str(), "World Hello!") == 0);
-
-    str2.erase(5, 6);
-    assert(strcmp(str2.c_str(), "World!") == 0);
-
-    str2.replace(0, 5, "Goodbye");
-    assert(strcmp(str2.c_str(), "Goodbye!") == 0);
-
-    assert(str1.compare("Hello") == 0);
-    assert(str1.compare("World") < 0);
-    assert(str1.compare("Apple") > 0);
-
-    assert(str1.icompare("hello") == 0);
-    assert(str1.icompare("WORLD") < 0);
-    assert(str1.icompare("apple") > 0);
-
-    assert(str1.find('e') == 1);
-    assert(str1.find("lo") == 3);
-    assert(str1.rfind('l') == 3);
-    assert(str1.rfind("el") == 1);
-    assert(str1.ifind('E') == 1);
-    assert(str1.ifind("LO") == 3);
-    assert(str1.find("llo") == 2);
-    assert(str1.find("LLO") == str1.npos);
-    assert(str1.ifind("LLO") == 2);
-    assert(str1.rfind("l") == 3);
-
-    QStringA sub = str1.substr(1, 3);
-    assert(strcmp(sub.c_str(), "ell") == 0);
-
-    QStringA fmt;
-    fmt.format("%s, %d", "Number", 42);
-    assert(strcmp(fmt.c_str(), "Number, 42") == 0);
-
-    assert(to_QStringA(0) == "0");
-    assert(to_QStringA(-1) == "-1");
-    assert(to_QStringA(100) == "100");
-    assert(to_QStringA(0x7FFFFFFF) == "2147483647");
-    assert(to_QStringA(0x80000000) == "-2147483648");
-    assert(to_QStringA(0x80000000UL) == "2147483648");
-
-    std::cout << "hash: " << std::hash<QStringA>{}(sub) << std::endl;
-}
-
 void test_string(void)
 {
     std::cout << "test_string" << std::endl;
@@ -235,19 +168,128 @@ void test_string(void)
     assert(std::to_string(-1) == "-1");
     assert(std::to_string(100) == "100");
     assert(std::to_string(0x7FFFFFFF) == "2147483647");
-    assert(std::to_string(0x80000000) == "-2147483648");
     assert(std::to_string(0x80000000UL) == "2147483648");
 
     std::cout << "hash: " << std::hash<std::string>{}(sub) << std::endl;
+
+    str1 = "Hello, World!";
+    str2 = "123";
+    assert(str1.find_first_of(str2) == str1.npos);
+    assert(str1.find_first_not_of(str2) == 0);
+    assert(str1.find_last_of(str2) == str1.npos);
+    assert(str1.find_last_not_of(str2) == str1.size() - 1);
+
+    str1 = "Hello, World!";
+    str2 = "WOR!";
+    assert(str1.find_first_of(str2) == 7);
+    assert(str1.find_first_not_of(str2) == 0);
+    assert(str1.find_last_of(str2) == 12);
+    assert(str1.find_last_not_of(str2) == 11);
+    assert(str1.find_first_of(str2, 13) == str1.npos);
+    assert(str1.find_first_not_of(str2, 13) == str1.npos);
+    assert(str1.find_last_of(str2, 13) == 12);
+    assert(str1.find_last_not_of(str2, 13) == 11);
+    assert(str1.find_first_of(str2, str1.npos) == str1.npos);
+    assert(str1.find_first_not_of(str2, str1.npos) == str1.npos);
+    assert(str1.find_last_of(str2, str1.npos) == 12);
+    assert(str1.find_last_not_of(str2, str1.npos) == 11);
+}
+
+void test_QStringA(void)
+{
+    std::cout << "test_QStringA" << std::endl;
+
+    QStringA str1("Hello");
+    assert(str1.size() == 5);
+    assert(strcmp(str1.c_str(), "Hello") == 0);
+
+    QStringA str2(str1);
+    assert(str1 == str2);
+
+    str2.clear();
+    assert(str2.empty());
+
+    str2 = "World";
+    assert(str2.size() == 5);
+    assert(strcmp(str2.c_str(), "World") == 0);
+
+    str2 += '!';
+    assert(str2.size() == 6);
+    assert(strcmp(str2.c_str(), "World!") == 0);
+
+    str2.insert(5, " Hello");
+    assert(strcmp(str2.c_str(), "World Hello!") == 0);
+
+    str2.erase(5, 6);
+    assert(strcmp(str2.c_str(), "World!") == 0);
+
+    str2.replace(0, 5, "Goodbye");
+    assert(strcmp(str2.c_str(), "Goodbye!") == 0);
+
+    assert(str1.compare("Hello") == 0);
+    assert(str1.compare("World") < 0);
+    assert(str1.compare("Apple") > 0);
+
+    assert(str1.icompare("hello") == 0);
+    assert(str1.icompare("WORLD") < 0);
+    assert(str1.icompare("apple") > 0);
+
+    assert(str1.find('e') == 1);
+    assert(str1.find("lo") == 3);
+    assert(str1.rfind('l') == 3);
+    assert(str1.rfind("el") == 1);
+    assert(str1.ifind('E') == 1);
+    assert(str1.ifind("LO") == 3);
+    assert(str1.find("llo") == 2);
+    assert(str1.find("LLO") == str1.npos);
+    assert(str1.ifind("LLO") == 2);
+    assert(str1.rfind("l") == 3);
+
+    QStringA sub = str1.substr(1, 3);
+    assert(strcmp(sub.c_str(), "ell") == 0);
+
+    QStringA fmt;
+    fmt.format("%s, %d", "Number", 42);
+    assert(strcmp(fmt.c_str(), "Number, 42") == 0);
+
+    assert(to_QStringA(0) == "0");
+    assert(to_QStringA(-1) == "-1");
+    assert(to_QStringA(100) == "100");
+    assert(to_QStringA(0x7FFFFFFF) == "2147483647");
+    assert(to_QStringA(0x80000000UL) == "2147483648");
+
+    std::cout << "hash: " << std::hash<QStringA>{}(sub) << std::endl;
+
+    str1 = "Hello, World!";
+    str2 = "123";
+    assert(str1.find_first_of(str2) == str1.npos);
+    assert(str1.find_first_not_of(str2) == 0);
+    assert(str1.find_last_of(str2) == str1.npos);
+    assert(str1.find_last_not_of(str2) == str1.size() - 1);
+
+    str1 = "Hello, World!";
+    str2 = "WOR!";
+    assert(str1.find_first_of(str2) == 7);
+    assert(str1.find_first_not_of(str2) == 0);
+    assert(str1.find_last_of(str2) == 12);
+    assert(str1.find_last_not_of(str2) == 11);
+    assert(str1.find_first_of(str2, 13) == str1.npos);
+    assert(str1.find_first_not_of(str2, 13) == str1.npos);
+    assert(str1.find_last_of(str2, 13) == 12);
+    assert(str1.find_last_not_of(str2, 13) == 11);
+    assert(str1.find_first_of(str2, str1.npos) == str1.npos);
+    assert(str1.find_first_not_of(str2, str1.npos) == str1.npos);
+    assert(str1.find_last_of(str2, str1.npos) == 12);
+    assert(str1.find_last_not_of(str2, str1.npos) == 11);
 }
 
 int main(void)
 {
-    test_QStringA();
     test_string();
+    test_QStringA();
 
-    speed_test_CStringA();
     speed_test_string();
+    speed_test_CStringA();
 
     std::cout << "All tests passed!" << std::endl;
 

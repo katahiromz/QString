@@ -819,9 +819,9 @@ public:
         }
         return npos;
     }
-    size_type find_first_of(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
+    size_type find_first_of(const T_CHAR *pszText, size_type index = 0) const XNOEXCEPT
     {
-        if (index >= m_nLength || cchText == 0)
+        if (index >= m_nLength || *pszText == 0)
             return npos;
 
         const T_CHAR *end = &m_pszText[m_nLength];
@@ -868,7 +868,7 @@ public:
         }
         return npos;
     }
-    size_type find_first_not_of(const T_CHAR *psz, size_type index = 0) const XNOEXCEPT
+    size_type find_first_not_of(const T_CHAR *pszText, size_type index = 0) const XNOEXCEPT
     {
         if (index >= m_nLength)
             return npos;
@@ -923,25 +923,24 @@ public:
         if (m_nLength == 0)
             return npos;
         if (index >= m_nLength)
-            index = m_nLength - 1;
-        for (size_type i = index; i != npos; --i)
+            index = m_nLength;
+        for (size_type i = index - 1; i != npos; --i)
         {
             if (m_pszText[i] == ch)
                 return i;
         }
         return npos;
     }
-
-    size_type find_last_of(const T_CHAR *psz, size_type index = npos) const XNOEXCEPT
+    size_type find_last_of(const T_CHAR *pszText, size_type index = npos) const XNOEXCEPT
     {
-        if (m_nLength == 0 || cchText == 0)
+        if (m_nLength == 0 || *pszText == 0)
             return npos;
 
         if (index >= m_nLength)
-            index = m_nLength - 1;
+            index = m_nLength;
 
         const T_CHAR *start = m_pszText;
-        const T_CHAR *end = &m_pszText[index + 1];
+        const T_CHAR *end = &m_pszText[index];
         for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
         {
             for (const T_CHAR *pch = pszText; *pch; ++pch)
@@ -958,10 +957,10 @@ public:
             return npos;
 
         if (index >= m_nLength)
-            index = m_nLength - 1;
+            index = m_nLength;
 
         const T_CHAR *start = m_pszText;
-        const T_CHAR *end = &m_pszText[index + 1];
+        const T_CHAR *end = &m_pszText[index];
         const T_CHAR *pchTextEnd = &pszText[cchText];
         for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
         {
@@ -983,24 +982,24 @@ public:
         if (m_nLength == 0)
             return npos;
         if (index >= m_nLength)
-            index = m_nLength - 1;
-        for (size_type i = index; i != npos; --i)
+            index = m_nLength;
+        for (size_type i = index - 1; i != npos; --i)
         {
             if (m_pszText[i] != ch)
                 return i;
         }
         return npos;
     }
-    size_type find_last_not_of(const T_CHAR *psz, size_type index = npos) const XNOEXCEPT
+    size_type find_last_not_of(const T_CHAR *pszText, size_type index = npos) const XNOEXCEPT
     {
-        if (m_nLength == 0 || cchText == 0)
+        if (m_nLength == 0 || *pszText == 0)
             return npos;
 
         if (index >= m_nLength)
-            index = m_nLength - 1;
+            index = m_nLength;
 
         const T_CHAR *start = m_pszText;
-        const T_CHAR *end = &m_pszText[index + 1];
+        const T_CHAR *end = &m_pszText[index];
         for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
         {
             bool found = false;
@@ -1023,10 +1022,10 @@ public:
             return npos;
 
         if (index >= m_nLength)
-            index = m_nLength - 1;
+            index = m_nLength;
 
         const T_CHAR *start = m_pszText;
-        const T_CHAR *end = &m_pszText[index + 1];
+        const T_CHAR *end = &m_pszText[index];
         const T_CHAR *pchTextEnd = &pszText[cchText];
         for (const T_CHAR *ptr = end - 1; ptr >= start; --ptr)
         {
@@ -1167,7 +1166,27 @@ inline QStringT<T_CHAR> operator+(const QStringT<T_CHAR>& str1, const QStringT<T
 typedef QStringT<char>    QStringA;
 typedef QStringT<wchar_t> QStringW;
 
-template <typename T_NUMBER>
+namespace detail
+{
+    template <typename T_STRING, typename T_NUMBER>
+    void to_QString(T_STRING& str, T_NUMBER number)
+    {
+        auto psz = str.data();
+        auto pch = psz;
+
+        do
+        {
+            *pch++ = typename T_STRING::value_type('0' + (number % 10));
+            number /= 10;
+        } while (number > 0);
+        *pch = 0;
+
+        str.m_nLength = pch - psz;
+        assert(str.m_nLength < QStringA::SSO_MAX_SIZE);
+    }
+}
+
+template <typename T_NUMBER, typename std::enable_if<std::is_signed<T_NUMBER>::value, int>::type = 0>
 QStringA to_QStringA(T_NUMBER number)
 {
     if (number == 0)
@@ -1178,18 +1197,7 @@ QStringA to_QStringA(T_NUMBER number)
         number = -number;
 
     QStringA ret;
-    auto psz = ret.data();
-    auto pch = psz;
-
-    do
-    {
-        *pch++ = (char)('0' + (number % 10));
-        number /= 10;
-    } while (number > 0);
-    *pch = 0;
-
-    ret.m_nLength = pch - psz;
-    assert(ret.m_nLength < QStringA::SSO_MAX_SIZE);
+    detail::to_QString(ret, number);
 
     if (minus)
         ret += '-';
@@ -1198,7 +1206,20 @@ QStringA to_QStringA(T_NUMBER number)
     return ret;
 }
 
-template <typename T_NUMBER>
+template <typename T_NUMBER, typename std::enable_if<std::is_unsigned<T_NUMBER>::value, int>::type = 0>
+QStringA to_QStringA(T_NUMBER number)
+{
+    if (number == 0)
+        return "0";
+
+    QStringA ret;
+    detail::to_QString(ret, number);
+
+    std::reverse(ret.begin(), ret.end());
+    return ret;
+}
+
+template <typename T_NUMBER, typename std::enable_if<std::is_signed<T_NUMBER>::value, int>::type = 0>
 QStringW to_QStringW(T_NUMBER number)
 {
     if (number == 0)
@@ -1209,21 +1230,23 @@ QStringW to_QStringW(T_NUMBER number)
         number = -number;
 
     QStringW ret;
-    auto psz = ret.data();
-    auto pch = psz;
-
-    do
-    {
-        *pch++ = (wchar_t)(L'0' + (number % 10));
-        number /= 10;
-    } while (number > 0);
-    *pch = 0;
-
-    ret.m_nLength = pch - psz;
-    assert(ret.m_nLength < QStringW::SSO_MAX_SIZE);
+    detail::to_QString(ret, number);
 
     if (minus)
         ret += L'-';
+
+    std::reverse(ret.begin(), ret.end());
+    return ret;
+}
+
+template <typename T_NUMBER, typename std::enable_if<std::is_unsigned<T_NUMBER>::value, int>::type = 0>
+QStringW to_QStringW(T_NUMBER number)
+{
+    if (number == 0)
+        return L"0";
+
+    QStringW ret;
+    detail::to_QString(ret, number);
 
     std::reverse(ret.begin(), ret.end());
     return ret;
