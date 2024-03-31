@@ -1,4 +1,4 @@
-// QString Version 0.5 --- Quick String by katahiromz
+// QString Version 0.6 --- Quick String by katahiromz
 // License: MIT
 #pragma once
 
@@ -238,7 +238,8 @@ protected:
     }
     inline void _fill_n(wchar_t *first, size_type count, wchar_t value) XNOEXCEPT
     {
-        for (; count > 0; --count)
+        wchar_t *end = first + count;
+        while (first < end)
             *first++ = value;
     }
 
