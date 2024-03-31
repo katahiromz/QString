@@ -19,50 +19,6 @@ void speed_test(const char *name, T_FN fn)
     std::cout << name << " time: " << duration << " ms" << std::endl;
 }
 
-void speed_test_CStringA(void)
-{
-    QStringA str;
-
-    speed_test("CStringA concatnate", [&]() {
-        for (int i = 0; i < ITERATIONS; ++i) {
-            str += "test";
-        }
-    });
-
-    str.clear();
-    speed_test("QStringA concatnate 2", [&]() {
-        QStringA pattern = "test";
-        for (int i = 0; i < ITERATIONS; ++i) {
-            str += pattern;
-        }
-    });
-
-    speed_test("CStringA find 1", [&]() {
-        size_t index = 0;
-        for (int i = 0; i < ITERATIONS; ++i) {
-            index += str.find('t');
-        }
-        printf("index: %d\n", (int)index);
-    });
-
-    speed_test("CStringA find 2", [&]() {
-        size_t index = 0;
-        for (int i = 0; i < ITERATIONS; ++i) {
-            index += str.find("te");
-        }
-        printf("index: %d\n", (int)index);
-    });
-
-#if 0
-    speed_test("QStringA string literal", [&]() {
-        for (int i = 0; i < ITERATIONS; ++i) {
-            QStringA str(QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf"));
-            str += QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf");
-        }
-    });
-#endif
-}
-
 void speed_test_string(void)
 {
     std::string str;
@@ -97,11 +53,119 @@ void speed_test_string(void)
         printf("index: %d\n", (int)index);
     });
 
+    speed_test("std::string find_first_of", [&]() {
+        size_t index = 0;
+        str = "Hello, world!";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find_first_of("wor");
+        }
+    });
+
+    speed_test("std::string find_first_not_of", [&]() {
+        size_t index = 0;
+        str = "Hello, world!";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find_first_not_of("Hello");
+        }
+    });
+
+    speed_test("std::string find_last_of", [&]() {
+        size_t index = 0;
+        str = "Hello, world!";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find_last_of("wor");
+        }
+    });
+
+    speed_test("std::string find_last_not_of", [&]() {
+        size_t index = 0;
+        str = "Hello, world!";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find_last_not_of("orld!");
+        }
+    });
+
 #if 0
     speed_test("std::string string literal", [&]() {
         for (int i = 0; i < ITERATIONS; ++i) {
             std::string str("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf");
             str += "asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf";
+        }
+    });
+#endif
+}
+
+void speed_test_CStringA(void)
+{
+    QStringA str;
+
+    speed_test("CStringA concatnate", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str += "test";
+        }
+    });
+
+    str.clear();
+    speed_test("QStringA concatnate 2", [&]() {
+        QStringA pattern = "test";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str += pattern;
+        }
+    });
+
+    speed_test("CStringA find 1", [&]() {
+        size_t index = 0;
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find('t');
+        }
+        printf("index: %d\n", (int)index);
+    });
+
+    speed_test("CStringA find 2", [&]() {
+        size_t index = 0;
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find("te");
+        }
+        printf("index: %d\n", (int)index);
+    });
+
+    speed_test("CStringA find_first_of", [&]() {
+        size_t index = 0;
+        str = "Hello, world!";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find_first_of("wor");
+        }
+    });
+
+    speed_test("CStringA find_first_not_of", [&]() {
+        size_t index = 0;
+        str = "Hello, world!";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find_first_not_of("Hello");
+        }
+    });
+
+    speed_test("CStringA find_last_of", [&]() {
+        size_t index = 0;
+        str = "Hello, world!";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find_last_of("wor");
+        }
+    });
+
+    speed_test("CStringA find_last_not_of", [&]() {
+        size_t index = 0;
+        str = "Hello, world!";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            index += str.find_last_not_of("orld!");
+        }
+    });
+
+#if 0
+    speed_test("QStringA string literal", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            QStringA str(QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf"));
+            str += QStringLiteral("asdflkajsldflajsdkfjalskdfajlkslalkaksjldfkjalsjdfkajslfjdaslkfdjasldf");
         }
     });
 #endif

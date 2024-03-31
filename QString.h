@@ -808,7 +808,7 @@ public:
         return ifind(str.m_pszText, index, str.m_nLength);
     }
 
-    size_type find_first_of(T_CHAR ch, size_type index = 0) const XNOEXCEPT
+    inline size_type find_first_of(T_CHAR ch, size_type index = 0) const XNOEXCEPT
     {
         if (index >= m_nLength)
             return npos;
@@ -819,7 +819,7 @@ public:
         }
         return npos;
     }
-    size_type find_first_of(const T_CHAR *pszText, size_type index = 0) const XNOEXCEPT
+    inline size_type find_first_of(const T_CHAR *pszText, size_type index = 0) const XNOEXCEPT
     {
         if (index >= m_nLength || *pszText == 0)
             return npos;
@@ -835,7 +835,7 @@ public:
         }
         return npos;
     }
-    size_type find_first_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
+    inline size_type find_first_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
         if (index >= m_nLength || cchText == 0)
             return npos;
@@ -857,7 +857,7 @@ public:
         return find_first_of(str.m_pszText, index, str.m_nLength);
     }
 
-    size_type find_first_not_of(T_CHAR ch, size_type index = 0) const XNOEXCEPT
+    inline size_type find_first_not_of(T_CHAR ch, size_type index = 0) const XNOEXCEPT
     {
         if (index >= m_nLength)
             return npos;
@@ -868,7 +868,7 @@ public:
         }
         return npos;
     }
-    size_type find_first_not_of(const T_CHAR *pszText, size_type index = 0) const XNOEXCEPT
+    inline size_type find_first_not_of(const T_CHAR *pszText, size_type index = 0) const XNOEXCEPT
     {
         if (index >= m_nLength)
             return npos;
@@ -890,7 +890,7 @@ public:
         }
         return npos;
     }
-    size_type find_first_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
+    inline size_type find_first_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
         if (index >= m_nLength)
             return npos;
@@ -918,7 +918,7 @@ public:
         return find_first_not_of(str.m_pszText, index, str.m_nLength);
     }
 
-    size_type find_last_of(T_CHAR ch, size_type index = npos) const XNOEXCEPT
+    inline size_type find_last_of(T_CHAR ch, size_type index = npos) const XNOEXCEPT
     {
         if (m_nLength == 0)
             return npos;
@@ -931,7 +931,7 @@ public:
         }
         return npos;
     }
-    size_type find_last_of(const T_CHAR *pszText, size_type index = npos) const XNOEXCEPT
+    inline size_type find_last_of(const T_CHAR *pszText, size_type index = npos) const XNOEXCEPT
     {
         if (m_nLength == 0 || *pszText == 0)
             return npos;
@@ -951,7 +951,7 @@ public:
         }
         return npos;
     }
-    size_type find_last_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
+    inline size_type find_last_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
         if (m_nLength == 0 || cchText == 0)
             return npos;
@@ -977,7 +977,7 @@ public:
         return find_last_of(str.m_pszText, index, str.m_nLength);
     }
 
-    size_type find_last_not_of(T_CHAR ch, size_type index = npos) const XNOEXCEPT
+    inline size_type find_last_not_of(T_CHAR ch, size_type index = npos) const XNOEXCEPT
     {
         if (m_nLength == 0)
             return npos;
@@ -990,7 +990,7 @@ public:
         }
         return npos;
     }
-    size_type find_last_not_of(const T_CHAR *pszText, size_type index = npos) const XNOEXCEPT
+    inline size_type find_last_not_of(const T_CHAR *pszText, size_type index = npos) const XNOEXCEPT
     {
         if (m_nLength == 0 || *pszText == 0)
             return npos;
@@ -1016,7 +1016,7 @@ public:
         }
         return npos;
     }
-    size_type find_last_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
+    inline size_type find_last_not_of(const T_CHAR *pszText, size_type index, size_type cchText) const XNOEXCEPT
     {
         if (m_nLength == 0 || cchText == 0)
             return npos;
