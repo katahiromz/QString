@@ -1,11 +1,21 @@
-// QString Version 0.4 --- Quick String by katahiromz
+// QString Version 0.5 --- Quick String by katahiromz
 // License: MIT
 #pragma once
 
+#ifdef _WIN32
+    #include <windows.h>
+#endif
+
 #ifndef XMALLOC
-#define XMALLOC(x)      malloc(x)
-#define XREALLOC(x,y)   realloc(x, y)
-#define XFREE(x)        free(x)
+    #ifdef _WIN32
+        #define XMALLOC(x)      HeapAlloc(GetProcessHeap(), 0, (x))
+        #define XREALLOC(x,y)   HeapReAlloc(GetProcessHeap(), 0, (x), (y))
+        #define XFREE(x)        HeapFree(GetProcessHeap(), 0, (x))
+    #else
+        #define XMALLOC(x)      malloc(x)
+        #define XREALLOC(x,y)   realloc((x), (y))
+        #define XFREE(x)        free(x)
+    #endif
 #endif
 
 #ifndef XTHROW
@@ -14,6 +24,23 @@
 
 #ifndef XNOEXCEPT
     #define XNOEXCEPT noexcept
+#endif
+
+#ifndef XMALLOC_THROWABLE
+    #ifdef _WIN32
+        #define XMALLOC_THROWABLE(x) \
+            HeapAlloc(GetProcessHeap(), HEAP_GENERATE_EXCEPTIONS	, (x))
+    #else
+        #define XMALLOC_THROWABLE XMALLOC
+    #endif
+#endif
+#ifndef XREALLOC_THROWABLE
+    #ifdef _WIN32
+        #define XREALLOC_THROWABLE(x, y) \
+            HeapReAlloc(GetProcessHeap(), HEAP_GENERATE_EXCEPTIONS, (x), (y))
+    #else
+        #define XREALLOC_THROWABLE XREALLOC
+    #endif
 #endif
 
 #include <emmintrin.h>
@@ -73,55 +100,42 @@ protected:
         m_nCapacity = SSO_MAX_SIZE;
     }
 
-    inline bool _resize_0(size_type newCapacity, bool alloc) XNOEXCEPT
+    inline void _resize_0(size_type newCapacity, bool alloc) XNOEXCEPT
     {
-        size_type newSize = newCapacity * sizeof(T_CHAR);
-        return _resize_0(newCapacity, alloc, newSize);
+        const size_type newSize = newCapacity * sizeof(T_CHAR);
+        _resize_0(newCapacity, alloc, newSize);
     }
-    bool _resize_0(size_type newCapacity, bool alloc, size_type newSize) XNOEXCEPT
+    inline void _resize_0(size_type newCapacity, bool alloc, size_type newSize) XNOEXCEPT
     {
         T_CHAR *pszNew;
         if (alloc)
         {
-            pszNew = (T_CHAR*)XREALLOC(m_pszText, newSize);
-            if (!pszNew)
-            {
-                XTHROW(1);
-                return false;
-            }
+            pszNew = (T_CHAR*)XREALLOC_THROWABLE(m_pszText, newSize);
         }
         else
         {
-            pszNew = (T_CHAR*)XMALLOC(newSize);
-            if (!pszNew)
-            {
-                XTHROW(1);
-                return false;
-            }
+            pszNew = (T_CHAR*)XMALLOC_THROWABLE(newSize);
             memcpy(pszNew, m_szText, m_nLength * sizeof(T_CHAR));
         }
 
         m_pszText = pszNew;
         m_nCapacity = newCapacity;
-        return true;
     }
-    inline bool _resize_1(size_type newCapacity) XNOEXCEPT
+    inline void _resize_1(size_type newCapacity) XNOEXCEPT
     {
-        return _resize_1(newCapacity, is_alloc());
+        _resize_1(newCapacity, is_alloc());
     }
-    inline bool _resize_1(size_type newCapacity, bool alloc) XNOEXCEPT
+    inline void _resize_1(size_type newCapacity, bool alloc) XNOEXCEPT
     {
         if (newCapacity <= m_nCapacity)
-            return true;
+            return;
 
-        return _resize_0(newCapacity * 2, alloc);
+        _resize_0((newCapacity * 3) / 2, alloc);
     }
 
     void _copy(const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
-        if (!_resize_1(cchText + 1))
-            return;
-
+        _resize_1(cchText + 1);
         memcpy(m_pszText, pszText, cchText * sizeof(T_CHAR));
         m_nLength = cchText;
         m_pszText[m_nLength] = 0;
@@ -129,9 +143,7 @@ protected:
 
     void _insert_0(size_t index, const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
-        if (!_resize_1(m_nLength + cchText + 1))
-            return;
-
+        _resize_1(m_nLength + cchText + 1);
         memmove(&m_pszText[index + cchText], &m_pszText[index], (m_nLength - index) * sizeof(T_CHAR));
         memcpy(&m_pszText[index], pszText, cchText * sizeof(T_CHAR));
         m_nLength += cchText;
@@ -145,28 +157,6 @@ protected:
             return;
 
         _insert_0(index, pszText, cchText);
-    }
-
-    inline void _fill(size_type count, char ch) XNOEXCEPT
-    {
-        memset(m_pszText, ch, count);
-    }
-    inline void _fill(size_type index, size_type count, char ch) XNOEXCEPT
-    {
-        memset(&m_pszText[index], ch, count);
-    }
-
-    inline void _fill(size_type count, wchar_t ch) XNOEXCEPT
-    {
-        _fill(0, count, ch);
-    }
-    void _fill(size_type index, size_type count, wchar_t ch) XNOEXCEPT
-    {
-        count += index;
-        for (; index < count; ++index)
-        {
-            m_pszText[index] = ch;
-        }
     }
 
     inline int _compare(const char *psz, const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
@@ -233,12 +223,23 @@ protected:
         }
 
         if (cchText > count)
-        {
-            if (!_resize_1(m_nLength + (cchText - count) + 1))
-                return;
-        }
+            _resize_1(m_nLength + (cchText - count) + 1);
 
         _replace_0(index, count, pszText, cchText);
+    }
+
+    inline void _fill_n(char *first, size_type count, char value) XNOEXCEPT
+    {
+#ifdef _WIN32
+        FillMemory(first, count, value);
+#else
+        memset(first, value, count);
+#endif
+    }
+    inline void _fill_n(wchar_t *first, size_type count, wchar_t value) XNOEXCEPT
+    {
+        for (; count > 0; --count)
+            *first++ = value;
     }
 
 public:
@@ -293,10 +294,8 @@ public:
         if (!count)
             return;
 
-        if (!_resize_1(count + 1))
-            return;
-
-        _fill(count, ch);
+        _resize_1(count + 1);
+        _fill_n(m_pszText, count, ch);
         m_nLength = count;
         m_pszText[m_nLength] = 0;
     }
@@ -335,8 +334,8 @@ public:
 
     inline void clear() XNOEXCEPT
     {
-        _free();
-        _reset();
+        m_pszText[0] = 0;
+        m_nLength = 0;
     }
 
     inline QStringT& operator=(const T_CHAR *pszText) XNOEXCEPT
@@ -394,10 +393,8 @@ public:
     }
     inline void assign(size_type count, T_CHAR ch) XNOEXCEPT
     {
-        if (!_resize_1(count + 1))
-            return;
-
-        _fill(count, ch);
+        _resize_1(count + 1);
+        _fill_n(m_pszText, count, ch);
         m_nLength = count;
         m_pszText[m_nLength] = 0;
     }
@@ -410,9 +407,7 @@ public:
     inline void operator+=(T_CHAR ch) XNOEXCEPT
     {
         size_type newLength = m_nLength + 1;
-        if (!_resize_1(newLength + 1))
-            return;
-
+        _resize_1(newLength + 1);
         m_pszText[m_nLength] = ch;
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
@@ -424,9 +419,7 @@ public:
     inline void operator+=(const self_type& str) XNOEXCEPT
     {
         size_type newLength = m_nLength + str.m_nLength;
-        if (!_resize_1(newLength + 1))
-            return;
-
+        _resize_1(newLength + 1);
         memcpy(&m_pszText[m_nLength], str.m_pszText, str.m_nLength * sizeof(T_CHAR));
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
@@ -447,9 +440,7 @@ public:
         size_type cchText = _length(pszText);
         size_type newLength = m_nLength + cchText;
 
-        if (!_resize_1(newLength + 1))
-            return;
-
+        _resize_1(newLength + 1);
         memcpy(&m_pszText[m_nLength], pszText, cchText * sizeof(T_CHAR));
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
@@ -457,9 +448,7 @@ public:
     inline void append(const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
         size_type newLength = m_nLength + cchText;
-        if (!_resize_1(newLength + 1))
-            return;
-
+        _resize_1(newLength + 1);
         memcpy(&m_pszText[m_nLength], pszText, cchText * sizeof(T_CHAR));
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
@@ -471,9 +460,7 @@ public:
     inline void append(const self_type& str) XNOEXCEPT
     {
         size_type newLength = m_nLength + str.m_nLength;
-        if (!_resize_1(newLength + 1))
-            return;
-
+        _resize_1(newLength + 1);
         memcpy(&m_pszText[m_nLength], str.m_pszText, str.m_nLength * sizeof(T_CHAR));
         m_nLength = newLength;
         m_pszText[m_nLength] = 0;
@@ -537,18 +524,20 @@ public:
 
     inline void resize(size_type length) XNOEXCEPT
     {
-        if (!_resize_1(length + 1))
-            return;
+        _resize_1(length + 1);
         m_nLength = length;
         m_pszText[m_nLength] = 0;
     }
-    void resize(size_type length, T_CHAR ch) XNOEXCEPT
+    inline void resize(size_type length, T_CHAR ch) XNOEXCEPT
     {
-        size_type len = m_nLength;
-        if (!_resize_1(length + 1))
-            return;
-        if (length > len)
-            _fill(len, length - len, ch);
+        if (length > m_nLength)
+        {
+            const size_type oldlen = m_nLength;
+            if (m_nCapacity < length + 1)
+                _resize_0(length + 1, is_alloc());
+
+            _fill_n(&m_pszText[oldlen], length - oldlen, ch);
+        }
         m_nLength = length;
         m_pszText[m_nLength] = 0;
     }

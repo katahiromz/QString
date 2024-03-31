@@ -85,6 +85,27 @@ void speed_test_string(void)
         }
     });
 
+    speed_test("std::string copy", [&]() {
+        std::string str0 = "SKJDFLKJSLKDFJLSKJDFKSKDLJFKSJDFLKJSDLKFJSLSJDFKLSJDLKFJLSDJFLKSDJLSKJDFLKJSLKDFJLSKJDFKSKDLJFKSJDFLKJSDLKFJSLSJDFKLSJDLKFJLSDJFLKSDJL";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str = str0;
+        }
+    });
+
+    speed_test("std::string resize", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str.resize(1024);
+            str.clear();
+        }
+    });
+
+    speed_test("std::string resize 2", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str.resize(1024, ' ');
+            str.clear();
+        }
+    });
+
 #if 0
     speed_test("std::string string literal", [&]() {
         for (int i = 0; i < ITERATIONS; ++i) {
@@ -95,11 +116,11 @@ void speed_test_string(void)
 #endif
 }
 
-void speed_test_CStringA(void)
+void speed_test_QStringA(void)
 {
     QStringA str;
 
-    speed_test("CStringA concatnate", [&]() {
+    speed_test("QStringA concatnate", [&]() {
         for (int i = 0; i < ITERATIONS; ++i) {
             str += "test";
         }
@@ -113,7 +134,7 @@ void speed_test_CStringA(void)
         }
     });
 
-    speed_test("CStringA find 1", [&]() {
+    speed_test("QStringA find 1", [&]() {
         size_t index = 0;
         for (int i = 0; i < ITERATIONS; ++i) {
             index += str.find('t');
@@ -121,7 +142,7 @@ void speed_test_CStringA(void)
         printf("index: %d\n", (int)index);
     });
 
-    speed_test("CStringA find 2", [&]() {
+    speed_test("QStringA find 2", [&]() {
         size_t index = 0;
         for (int i = 0; i < ITERATIONS; ++i) {
             index += str.find("te");
@@ -129,7 +150,7 @@ void speed_test_CStringA(void)
         printf("index: %d\n", (int)index);
     });
 
-    speed_test("CStringA find_first_of", [&]() {
+    speed_test("QStringA find_first_of", [&]() {
         size_t index = 0;
         str = "Hello, world!";
         for (int i = 0; i < ITERATIONS; ++i) {
@@ -137,7 +158,7 @@ void speed_test_CStringA(void)
         }
     });
 
-    speed_test("CStringA find_first_not_of", [&]() {
+    speed_test("QStringA find_first_not_of", [&]() {
         size_t index = 0;
         str = "Hello, world!";
         for (int i = 0; i < ITERATIONS; ++i) {
@@ -145,7 +166,7 @@ void speed_test_CStringA(void)
         }
     });
 
-    speed_test("CStringA find_last_of", [&]() {
+    speed_test("QStringA find_last_of", [&]() {
         size_t index = 0;
         str = "Hello, world!";
         for (int i = 0; i < ITERATIONS; ++i) {
@@ -153,11 +174,32 @@ void speed_test_CStringA(void)
         }
     });
 
-    speed_test("CStringA find_last_not_of", [&]() {
+    speed_test("QStringA find_last_not_of", [&]() {
         size_t index = 0;
         str = "Hello, world!";
         for (int i = 0; i < ITERATIONS; ++i) {
             index += str.find_last_not_of("orld!");
+        }
+    });
+
+    speed_test("QStringA copy", [&]() {
+        QStringA str0 = "SKJDFLKJSLKDFJLSKJDFKSKDLJFKSJDFLKJSDLKFJSLSJDFKLSJDLKFJLSDJFLKSDJLSKJDFLKJSLKDFJLSKJDFKSKDLJFKSJDFLKJSDLKFJSLSJDFKLSJDLKFJLSDJFLKSDJL";
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str = str0;
+        }
+    });
+
+    speed_test("QStringA resize", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str.resize(1024);
+            str.clear();
+        }
+    });
+
+    speed_test("QStringA resize 2", [&]() {
+        for (int i = 0; i < ITERATIONS; ++i) {
+            str.resize(1024, ' ');
+            str.clear();
         }
     });
 
@@ -393,7 +435,7 @@ int main(void)
     test_QStringA();
 
     speed_test_string();
-    speed_test_CStringA();
+    speed_test_QStringA();
 
     std::cout << "All tests passed!" << std::endl;
 
