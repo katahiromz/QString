@@ -1,4 +1,4 @@
-// QString Version 0.6 --- Quick String by katahiromz
+// QString Version 0.7 --- Quick String by katahiromz
 // License: MIT
 #pragma once
 
@@ -159,34 +159,39 @@ protected:
         _insert_0(index, pszText, cchText);
     }
 
-    inline int _compare(const char *psz, const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
+    inline int _compare(const char *psz1, const char *psz2) const XNOEXCEPT
     {
-        return strncmp(psz, pszText, cchText);
+        return strcmp(psz1, psz2);
     }
-    inline int _compare(const wchar_t *psz, const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
+    inline int _compare(const wchar_t *psz1, const wchar_t *psz2) const XNOEXCEPT
     {
-        return wcsncmp(psz, pszText, cchText);
+        return wcscmp(psz1, psz2);
     }
-    inline int _compare(const T_CHAR *pszText, size_type cchText) const XNOEXCEPT
+    inline int _compare_n(const char *psz1, const char *psz2, size_t cch) const XNOEXCEPT
     {
-        return _compare(m_pszText, pszText, cchText);
+        return strncmp(psz1, psz2, cch);
+    }
+    inline int _compare_n(const wchar_t *psz1, const wchar_t *psz2, size_t cch) const XNOEXCEPT
+    {
+        return wcsncmp(psz1, psz2, cch);
     }
 
-    inline int _icompare(const char *psz, const char *pszText, size_type cchText) const XNOEXCEPT
+    inline int _icompare(const char *psz1, const char *psz2) const XNOEXCEPT
     {
-        return _strnicmp(psz, pszText, cchText);
+        return _stricmp(psz1, psz2);
     }
-    inline int _icompare(const wchar_t *psz, const wchar_t *pszText, size_type cchText) const XNOEXCEPT
+    inline int _icompare(const wchar_t *psz1, const wchar_t *psz2) const XNOEXCEPT
     {
-        return _wcsnicmp(psz, pszText, cchText);
+        return _wcsicmp(psz1, psz2);
     }
-    inline int _icompare(const char *pszText, size_type cchText) const XNOEXCEPT
+
+    inline int _icompare_n(const char *psz1, const char *psz2, size_type cch) const XNOEXCEPT
     {
-        return _icompare(m_pszText, pszText, cchText);
+        return _strnicmp(psz1, psz2, cch);
     }
-    inline int _icompare(const wchar_t *pszText, size_type cchText) const XNOEXCEPT
+    inline int _icompare_n(const wchar_t *psz1, const wchar_t *psz2, size_type cch) const XNOEXCEPT
     {
-        return _icompare(m_pszText, pszText, cchText);
+        return _wcsnicmp(psz1, psz2, cch);
     }
 
     inline size_type _format_v(const char *fmt, va_list va) XNOEXCEPT
@@ -550,20 +555,34 @@ public:
 
     inline int compare(const T_CHAR *psz) const XNOEXCEPT
     {
-        return _compare(psz, _length(psz));
+        return _compare(m_pszText, psz);
     }
     inline int compare(const self_type& str) const XNOEXCEPT
     {
-        return _compare(str.m_pszText, str.m_nLength);
+        int cmp = _compare_n(m_pszText, str.m_pszText, str.m_nLength);
+        if (cmp != 0)
+            return cmp;
+        if (m_nLength < str.m_nLength)
+            return -1;
+        if (m_nLength > str.m_nLength)
+            return +1;
+        return 0;
     }
 
     inline int icompare(const T_CHAR *psz) const XNOEXCEPT
     {
-        return _icompare(psz, _length(psz));
+        return _icompare(m_pszText, psz);
     }
     inline int icompare(const self_type& str) const XNOEXCEPT
     {
-        return _icompare(str.m_pszText, str.m_nLength);
+        int cmp = _icompare_n(m_pszText, str.m_pszText, str.m_nLength);
+        if (cmp != 0)
+            return cmp;
+        if (m_nLength < str.m_nLength)
+            return -1;
+        if (m_nLength > str.m_nLength)
+            return +1;
+        return 0;
     }
 
     inline bool operator==(const T_CHAR *psz) const XNOEXCEPT
@@ -761,7 +780,7 @@ public:
             return npos;
         for (; index < m_nLength; ++index)
         {
-            if (_icompare(&m_pszText[index], &ch, 1) == 0)
+            if (_icompare_n(&m_pszText[index], &ch, 1) == 0)
                 return index;
         }
         return npos;
@@ -776,7 +795,7 @@ public:
         {
             if (index + cchText > m_nLength)
                 break;
-            if (_icompare(&m_pszText[index], pszText, cchText) == 0)
+            if (_icompare_n(&m_pszText[index], pszText, cchText) == 0)
                 return index;
         }
         return npos;

@@ -319,6 +319,13 @@ void test_string(void)
     assert(str1.find_first_not_of("WOR!", str1.npos) == str1.npos);
     assert(str1.find_last_of("WOR!", str1.npos) == 12);
     assert(str1.find_last_not_of("WOR!", str1.npos) == 11);
+
+    str1 = "TEST";
+    str2 = "TESTTEST";
+    assert(str1 < str2);
+
+    str1 = "TESTTEST";
+    assert(str1 > "TEST");
 }
 
 void test_QStringA(void)
@@ -427,6 +434,13 @@ void test_QStringA(void)
     assert(str1.find_first_not_of("WOR!", str1.npos) == str1.npos);
     assert(str1.find_last_of("WOR!", str1.npos) == 12);
     assert(str1.find_last_not_of("WOR!", str1.npos) == 11);
+
+    str1 = "TEST";
+    str2 = "TESTTEST";
+    assert(str1 < str2);
+
+    str1 = "TESTTEST";
+    assert(str1 > "TEST");
 }
 
 int main(void)
