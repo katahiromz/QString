@@ -1,4 +1,4 @@
-// QString Version 0.7 --- Quick String by katahiromz
+// QString Version 0.8 --- Quick String by katahiromz
 // License: MIT
 #pragma once
 
@@ -546,6 +546,11 @@ public:
         }
         m_nLength = length;
         m_pszText[m_nLength] = 0;
+    }
+    inline void pop_back() XNOEXCEPT
+    {
+        assert(size() > 0);
+        erase(size() - 1, 1);
     }
 
     inline void reserve(size_type length)
