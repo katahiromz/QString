@@ -288,7 +288,10 @@ public:
     inline QStringT(self_type&& str) XNOEXCEPT
     {
         bool alloc = str.is_alloc();
-        memcpy(this, &str, sizeof(*this));
+        m_pszText   = str.m_pszText;
+        m_nLength   = str.m_nLength;
+        m_nCapacity = str.m_nCapacity;
+        memcpy(m_szText, str.m_szText, sizeof(m_szText));
         if (!alloc)
             m_pszText = m_szText;
         str._reset();
