@@ -211,7 +211,8 @@ protected:
 
     void _replace_0(size_type index, size_type count, const T_CHAR *pszText, size_type cchText) XNOEXCEPT
     {
-        memmove(&m_pszText[index + cchText], &m_pszText[index + count], (m_nLength - count) * sizeof(T_CHAR));
+        memmove(&m_pszText[index + cchText], &m_pszText[index + count],
+                (m_nLength - index - count) * sizeof(T_CHAR));
         memcpy(&m_pszText[index], pszText, cchText * sizeof(T_CHAR));
         m_nLength += cchText - count;
         m_pszText[m_nLength] = 0;
@@ -510,7 +511,8 @@ public:
 
         assert(index <= m_nLength);
         assert(index + count <= m_nLength);
-        memmove(&m_pszText[index], &m_pszText[index + count], count * sizeof(T_CHAR));
+        memmove(&m_pszText[index], &m_pszText[index + count],
+                (m_nLength - index - count) * sizeof(T_CHAR));
         m_nLength -= count;
         m_pszText[m_nLength] = 0;
     }
