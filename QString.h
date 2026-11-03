@@ -701,28 +701,20 @@ public:
         const T_CHAR *end = &m_pszText[m_nLength - cchText + 1];
 
         while (str < end) {
-            const T_CHAR *p = &pszText[cchText - 1];
-            const T_CHAR *s = &str[cchText - 1];
-            while (p >= pszText) {
-                if (*s != *p) {
-                    break;
-                }
-                --s;
-                --p;
-            }
-            if (p < pszText)
+            if (memcmp(str, pszText, cchText * sizeof(T_CHAR)) == 0)
                 return str - m_pszText;
 
-            size_type skip = 1;
-            for (size_type i = 0; i < cchText - 1; ++i) {
-                if (pszText[i] == *s) {
-                    skip = cchText - i - 1;
+            // 窓の末尾の文字がパターン内で最後に現れる位置から、スキップ量を決める。
+            const T_CHAR last = str[cchText - 1];
+            size_type skip = cchText;
+            for (size_type i = cchText - 1; i-- > 0; ) {
+                if (pszText[i] == last) {
+                    skip = cchText - 1 - i;
                     break;
                 }
             }
             str += skip;
         }
-
         return npos;
     }
     inline size_type find(const self_type& str, size_type index = 0) const XNOEXCEPT
@@ -1063,6 +1055,28 @@ public:
     void push_back(T_CHAR ch)
     {
         *this += ch;
+    }
+
+    T_CHAR& front()
+    {
+        assert(m_nLength > 0);
+        return m_pszText[0];
+    }
+    const T_CHAR& front() const
+    {
+        assert(m_nLength > 0);
+        return m_pszText[0];
+    }
+
+    T_CHAR& back()
+    {
+        assert(m_nLength > 0);
+        return m_pszText[m_nLength - 1];
+    }
+    const T_CHAR& back() const
+    {
+        assert(m_nLength > 0);
+        return m_pszText[m_nLength - 1];
     }
 
     size_t hash() const
