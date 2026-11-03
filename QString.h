@@ -1,4 +1,4 @@
-// QString Version 0.8 --- Quick String by katahiromz
+﻿// QString Version 0.8 --- Quick String by katahiromz
 // License: MIT
 #pragma once
 
@@ -47,6 +47,7 @@
 #include <immintrin.h>
 #include <cstdint>
 #include <cassert>
+#include <cwctype>
 #include <algorithm>
 #include <strsafe.h>
 
@@ -62,13 +63,14 @@ struct QStringLiteral
     const T_CHAR& operator[](size_t index) const XNOEXCEPT { return m_pszText[index]; }
 };
 
-template <typename T_CHAR>
+// t_null_ok = falseのとき、NULを許容しないが、高速化する。
+template <typename T_CHAR, bool t_null_ok = false>
 class QStringT
 {
 public:
     typedef T_CHAR value_type;
     typedef size_t size_type;
-    typedef QStringT<T_CHAR> self_type;
+    typedef QStringT<T_CHAR, t_null_ok> self_type;
     enum { SSO_MAX_SIZE = 60 }; // Short String Optimization
 
     T_CHAR *m_pszText;
@@ -159,6 +161,12 @@ protected:
         _insert_0(index, pszText, cchText);
     }
 
+    // ---- 比較ヘルパー ------------------------------------------------------
+    // t_null_ok == true  : 長さベース。埋め込みNULも通常の文字として比較する。
+    // t_null_ok == false : NULを含まない前提。strcmp/wcscmp系で一回走査し、
+    //                      長さの計算や比較長の算出を省いて高速化する。
+
+    // NUL終端文字列同士の比較(t_null_ok == false で使用)
     inline int _compare(const char *psz1, const char *psz2) const XNOEXCEPT
     {
         return strcmp(psz1, psz2);
@@ -167,15 +175,34 @@ protected:
     {
         return wcscmp(psz1, psz2);
     }
+    // 先頭からちょうど cch 文字を比較(NULを特別扱いしない)
     inline int _compare_n(const char *psz1, const char *psz2, size_t cch) const XNOEXCEPT
     {
-        return strncmp(psz1, psz2, cch);
+        return memcmp(psz1, psz2, cch);
     }
     inline int _compare_n(const wchar_t *psz1, const wchar_t *psz2, size_t cch) const XNOEXCEPT
     {
-        return wcsncmp(psz1, psz2, cch);
+        for (; cch > 0; --cch, ++psz1, ++psz2) {
+            if (*psz1 != *psz2)
+                return (*psz1 < *psz2) ? -1 : +1;
+        }
+        return 0;
+    }
+    // 長さ付きの辞書式比較(t_null_ok == true で使用)
+    inline int _compare_len(const T_CHAR *psz1, size_type cch1,
+                            const T_CHAR *psz2, size_type cch2) const XNOEXCEPT
+    {
+        int cmp = _compare_n(psz1, psz2, (std::min)(cch1, cch2));
+        if (cmp != 0)
+            return cmp;
+        if (cch1 < cch2)
+            return -1;
+        if (cch1 > cch2)
+            return +1;
+        return 0;
     }
 
+    // 大文字小文字を無視する版。折り畳みは小文字化に統一(_stricmp/_wcsicmpと同じ)
     inline int _icompare(const char *psz1, const char *psz2) const XNOEXCEPT
     {
         return _stricmp(psz1, psz2);
@@ -184,14 +211,32 @@ protected:
     {
         return _wcsicmp(psz1, psz2);
     }
-
     inline int _icompare_n(const char *psz1, const char *psz2, size_type cch) const XNOEXCEPT
     {
-        return _strnicmp(psz1, psz2, cch);
+        return _memicmp(psz1, psz2, cch);
     }
     inline int _icompare_n(const wchar_t *psz1, const wchar_t *psz2, size_type cch) const XNOEXCEPT
     {
-        return _wcsnicmp(psz1, psz2, cch);
+        for (; cch > 0; --cch, ++psz1, ++psz2) {
+            // 折り畳み後の値で等値判定と大小判定の両方を行う
+            const wint_t ch1 = towlower(*psz1);
+            const wint_t ch2 = towlower(*psz2);
+            if (ch1 != ch2)
+                return (ch1 < ch2) ? -1 : +1;
+        }
+        return 0;
+    }
+    inline int _icompare_len(const T_CHAR *psz1, size_type cch1,
+                             const T_CHAR *psz2, size_type cch2) const XNOEXCEPT
+    {
+        int cmp = _icompare_n(psz1, psz2, (std::min)(cch1, cch2));
+        if (cmp != 0)
+            return cmp;
+        if (cch1 < cch2)
+            return -1;
+        if (cch1 > cch2)
+            return +1;
+        return 0;
     }
 
     inline size_type _format_v(const char *fmt, va_list va) XNOEXCEPT
@@ -565,34 +610,35 @@ public:
 
     inline int compare(const T_CHAR *psz) const XNOEXCEPT
     {
-        return _compare(m_pszText, psz);
+        if (t_null_ok)
+            return _compare_len(m_pszText, m_nLength, psz, _length(psz));
+        return _compare(m_pszText, psz); // 長さ計算不要。一回走査で完了
     }
     inline int compare(const self_type& str) const XNOEXCEPT
     {
-        int cmp = _compare_n(m_pszText, str.m_pszText, str.m_nLength);
-        if (cmp != 0)
-            return cmp;
-        if (m_nLength < str.m_nLength)
-            return -1;
-        if (m_nLength > str.m_nLength)
-            return +1;
-        return 0;
+        if (t_null_ok)
+            return _compare_len(m_pszText, m_nLength, str.m_pszText, str.m_nLength);
+        return _compare(m_pszText, str.m_pszText);
     }
 
     inline int icompare(const T_CHAR *psz) const XNOEXCEPT
     {
+        if (t_null_ok)
+            return _icompare_len(m_pszText, m_nLength, psz, _length(psz));
         return _icompare(m_pszText, psz);
     }
     inline int icompare(const self_type& str) const XNOEXCEPT
     {
-        int cmp = _icompare_n(m_pszText, str.m_pszText, str.m_nLength);
-        if (cmp != 0)
-            return cmp;
-        if (m_nLength < str.m_nLength)
-            return -1;
-        if (m_nLength > str.m_nLength)
-            return +1;
-        return 0;
+        if (t_null_ok)
+            return _icompare_len(m_pszText, m_nLength, str.m_pszText, str.m_nLength);
+        return _icompare(m_pszText, str.m_pszText);
+    }
+
+    // 等価比較は長さが違えば即座に不一致(どちらのモードでも成立する)
+    inline bool equals(const self_type& str) const XNOEXCEPT
+    {
+        return m_nLength == str.m_nLength &&
+               memcmp(m_pszText, str.m_pszText, m_nLength * sizeof(T_CHAR)) == 0;
     }
 
     inline bool operator==(const T_CHAR *psz) const XNOEXCEPT
@@ -622,11 +668,11 @@ public:
 
     inline bool operator==(const self_type& str) const XNOEXCEPT
     {
-        return compare(str) == 0;
+        return equals(str);
     }
     inline bool operator!=(const self_type& str) const XNOEXCEPT
     {
-        return compare(str) != 0;
+        return !equals(str);
     }
     inline bool operator<(const self_type& str) const XNOEXCEPT
     {
@@ -704,7 +750,7 @@ public:
             if (memcmp(str, pszText, cchText * sizeof(T_CHAR)) == 0)
                 return str - m_pszText;
 
-            // ���̖����̕������p�^�[�����ōŌ�Ɍ����ʒu����A�X�L�b�v�ʂ����߂�B
+            // 窓の末尾の文字がパターン内で最後に現れる位置から、スキップ量を決める。
             const T_CHAR last = str[cchText - 1];
             size_type skip = cchText;
             for (size_type i = cchText - 1; i-- > 0; ) {
@@ -1104,42 +1150,42 @@ public:
     }
 }; // class QStringT
 
-template <typename T_CHAR>
-inline QStringT<T_CHAR> operator+(T_CHAR ch, const QStringT<T_CHAR>& str)
+template <typename T_CHAR, bool t_null_ok>
+inline QStringT<T_CHAR, t_null_ok> operator+(T_CHAR ch, const QStringT<T_CHAR, t_null_ok>& str)
 {
-    QStringT<T_CHAR> ret;
+    QStringT<T_CHAR, t_null_ok> ret;
     ret += ch;
     ret += str;
     return ret;
 }
-template <typename T_CHAR>
-inline QStringT<T_CHAR> operator+(const T_CHAR *psz, const QStringT<T_CHAR>& str)
+template <typename T_CHAR, bool t_null_ok>
+inline QStringT<T_CHAR, t_null_ok> operator+(const T_CHAR *psz, const QStringT<T_CHAR, t_null_ok>& str)
 {
-    QStringT<T_CHAR> ret;
+    QStringT<T_CHAR, t_null_ok> ret;
     ret += psz;
     ret += str;
     return ret;
 }
-template <typename T_CHAR>
-inline QStringT<T_CHAR> operator+(const QStringT<T_CHAR>& str, T_CHAR ch)
+template <typename T_CHAR, bool t_null_ok>
+inline QStringT<T_CHAR, t_null_ok> operator+(const QStringT<T_CHAR, t_null_ok>& str, T_CHAR ch)
 {
-    QStringT<T_CHAR> ret;
+    QStringT<T_CHAR, t_null_ok> ret;
     ret += str;
     ret += ch;
     return ret;
 }
-template <typename T_CHAR>
-inline QStringT<T_CHAR> operator+(const QStringT<T_CHAR>& str, const T_CHAR *psz)
+template <typename T_CHAR, bool t_null_ok>
+inline QStringT<T_CHAR, t_null_ok> operator+(const QStringT<T_CHAR, t_null_ok>& str, const T_CHAR *psz)
 {
-    QStringT<T_CHAR> ret;
+    QStringT<T_CHAR, t_null_ok> ret;
     ret += str;
     ret += psz;
     return ret;
 }
-template <typename T_CHAR>
-inline QStringT<T_CHAR> operator+(const QStringT<T_CHAR>& str1, const QStringT<T_CHAR>& str2)
+template <typename T_CHAR, bool t_null_ok>
+inline QStringT<T_CHAR, t_null_ok> operator+(const QStringT<T_CHAR, t_null_ok>& str1, const QStringT<T_CHAR, t_null_ok>& str2)
 {
-    QStringT<T_CHAR> ret;
+    QStringT<T_CHAR, t_null_ok> ret;
     ret.reserve(str1.size() + str2.size());
     ret += str1;
     ret += str2;
